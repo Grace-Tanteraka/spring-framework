@@ -23,7 +23,7 @@ rm sources.txt
 
 # Générer le fichier .war dans le dossier build
 #cd $BUILD_DIR || exit
-jar -cvf $APP_NAME.jar -C ./bin/* .
+jar -cvf $APP_NAME.jar -C ./bin .
 #cd ..
 
 # Déploiement dans Tomcat
