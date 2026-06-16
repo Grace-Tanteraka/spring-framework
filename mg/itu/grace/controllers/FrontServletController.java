@@ -5,8 +5,24 @@ import java.io.PrintWriter;
 
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
+import mg.itu.grace.utils.ClassScanner;
+import java.util.List;
 
 public class FrontServletController extends HttpServlet {
+    private List<String> controllerClassNames = new java.util.ArrayList<>();
+
+    public void init() throws ServletException {
+        String longPackageName = getInitParameter("controller-base-package");
+        if (longPackageName == null || longPackageName.isEmpty()) {
+            controllerClassNames = ClassScanner.findControllerClassNames("ALL");
+        } else {
+            String[] packageName = longPackageName.split(";");
+            for (String pkg : packageName) {
+                controllerClassNames.addAll(ClassScanner.findControllerClassNames(pkg));
+            }
+        }
+    }
+
     protected void doGet(
             HttpServletRequest req,
             HttpServletResponse resp) throws ServletException, IOException {
@@ -34,6 +50,12 @@ public class FrontServletController extends HttpServlet {
         }
 
         PrintWriter out = resp.getWriter();
-        out.println("Welcome to the Request Handler!");
+        for (String string : controllerClassNames) {
+            out.println("Found controller: " + string);
+        }
+        if(controllerClassNames.isEmpty()) {
+            out.println("No controllers found in the specified packages.");
+        }
+        //out.println("Welcome to the Request Handler!");
     }
 }
