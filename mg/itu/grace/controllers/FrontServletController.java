@@ -27,16 +27,16 @@ public class FrontServletController extends HttpServlet {
     protected void doGet(
             HttpServletRequest req,
             HttpServletResponse resp) throws ServletException, IOException {
-        handleRequest(req, resp);
+        processHandler(req, resp);
     }
 
     protected void doPost(
             HttpServletRequest req,
             HttpServletResponse resp) throws ServletException, IOException {
-        handleRequest(req, resp);
+        processHandler(req, resp);
     }
 
-    protected void handleRequest(
+    protected void processHandler(
             HttpServletRequest req,
             HttpServletResponse resp) throws ServletException, IOException {
 
