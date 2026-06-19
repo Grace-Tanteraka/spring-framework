@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import mg.itu.grace.utils.ClassScanner;
+import mg.itu.grace.annotations.Controller;
 import java.util.List;
 
 public class FrontServletController extends HttpServlet {
@@ -14,11 +15,11 @@ public class FrontServletController extends HttpServlet {
     public void init() throws ServletException {
         String longPackageName = getInitParameter("controller-base-package");
         if (longPackageName == null || longPackageName.isEmpty()) {
-            controllerClassNames = ClassScanner.findControllerClassNames("ALL");
+            controllerClassNames = ClassScanner.findControllerClassNames(Controller.class, "ALL");
         } else {
             String[] packageName = longPackageName.split(";");
             for (String pkg : packageName) {
-                controllerClassNames.addAll(ClassScanner.findControllerClassNames(pkg));
+                controllerClassNames.addAll(ClassScanner.findControllerClassNames(Controller.class, pkg));
             }
         }
     }
@@ -50,6 +51,7 @@ public class FrontServletController extends HttpServlet {
         }
 
         PrintWriter out = resp.getWriter();
+        out.println("Handling request for URL: " + url);
         for (String string : controllerClassNames) {
             out.println("Found controller: " + string);
         }
