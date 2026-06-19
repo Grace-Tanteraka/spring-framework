@@ -8,11 +8,11 @@ import jakarta.servlet.http.*;
 import mg.itu.grace.utils.ClassScanner;
 import mg.itu.grace.annotations.Controller;
 
-import mg.itu.grace.dto.ControllerMethodUrlMatch;
+import mg.itu.grace.dto.ControllerMethodUrlDto;
 import java.util.List;
 
 public class FrontServletController extends HttpServlet {
-    private List<ControllerMethodUrlMatch> supportedUrls = new java.util.ArrayList<>();
+    private List<ControllerMethodUrlDto> supportedUrls = new java.util.ArrayList<>();
 
     public void init() throws ServletException {
         String longPackageName = getInitParameter("controller-base-package");
@@ -54,13 +54,21 @@ public class FrontServletController extends HttpServlet {
 
         PrintWriter out = resp.getWriter();
 
-        ControllerMethodUrlMatch match = ClassScanner.isSupportedUrl(url, supportedUrls);
+        //out.println("Context Path: " + req.getContextPath());
+        String baseUrl = req.getScheme() + "://" + 
+                     req.getServerName() + ":" + 
+                     req.getServerPort() + 
+                     req.getContextPath();
+
+        //out.println("Base URL: " + baseUrl);
+        
+        ControllerMethodUrlDto match = ClassScanner.isSupportedUrl(baseUrl, url, supportedUrls);
         if(match != null) {
             out.println(match.toString());
         } else {
             out.println("URL : "+url+" is not supported.");
             out.println("Supported URLs:");
-            for (ControllerMethodUrlMatch supportedUrl : supportedUrls) {
+            for (ControllerMethodUrlDto supportedUrl : supportedUrls) {
                 out.println(supportedUrl.toString());
             }
         }
