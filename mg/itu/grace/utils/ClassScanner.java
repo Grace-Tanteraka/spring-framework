@@ -6,19 +6,22 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.lang.annotation.Annotation;
 
-import mg.itu.grace.dto.ControllerMethodUrlMatch;
+import mg.itu.grace.dto.ControllerMethodUrlDto;
 
 public class ClassScanner {
-    public static List<ControllerMethodUrlMatch> findSupportedUrl(String controllerPackage) {
-        List<Class<?>> controllerClasses = findAnnotedClasses(mg.itu.grace.annotations.Controller.class, controllerPackage);
-        List<ControllerMethodUrlMatch> supportedUrls = new ArrayList<>();
+    public static List<ControllerMethodUrlDto> findSupportedUrl(String controllerPackage) {
+        List<Class<?>> controllerClasses = findAnnotatedClasses(mg.itu.grace.annotations.Controller.class,
+                controllerPackage);
+        List<ControllerMethodUrlDto> supportedUrls = new ArrayList<>();
         for (Class<?> clazz : controllerClasses) {
             if (clazz.isAnnotationPresent(mg.itu.grace.annotations.Controller.class)) {
                 for (java.lang.reflect.Method method : clazz.getDeclaredMethods()) {
                     if (method.isAnnotationPresent(mg.itu.grace.annotations.UrlMapping.class)) {
-                        mg.itu.grace.annotations.UrlMapping urlMapping = method.getAnnotation(mg.itu.grace.annotations.UrlMapping.class);
+                        mg.itu.grace.annotations.UrlMapping urlMapping = method
+                                .getAnnotation(mg.itu.grace.annotations.UrlMapping.class);
 
-                        supportedUrls.add(new ControllerMethodUrlMatch(urlMapping.url(), clazz.getName(), method.getName()));
+                        supportedUrls
+                                .add(new ControllerMethodUrlDto(urlMapping.url(), clazz.getName(), method.getName()));
                     }
                 }
             }
@@ -26,18 +29,20 @@ public class ClassScanner {
         return supportedUrls;
     }
 
-    public static ControllerMethodUrlMatch isSupportedUrl(String url, List<ControllerMethodUrlMatch> supportedUrls) {
-        for (ControllerMethodUrlMatch match : supportedUrls) {
-            if (url.endsWith(match.getUrl())) {
+    public static ControllerMethodUrlDto isSupportedUrl(String baseUrl, String url, List<ControllerMethodUrlDto> supportedUrls) {
+        for (ControllerMethodUrlDto match : supportedUrls) {
+            String trueUrl = baseUrl + match.getUrl();
+            if(url.equals(trueUrl) || url.equals(trueUrl+"/")) {
                 return match;
             }
         }
         return null;
     }
 
-    public static List<String> findControllerClassNames(Class<? extends Annotation> annotationClass, String packageName) {
+    public static List<String> findAnnotatedClassNames(Class<? extends Annotation> annotationClass,
+            String packageName) {
         List<String> controllerClassNames = new ArrayList<>();
-        List<Class<?>> classes = findAnnotedClasses(annotationClass, packageName);
+        List<Class<?>> classes = findAnnotatedClasses(annotationClass, packageName);
         for (Class<?> clazz : classes) {
             controllerClassNames.add(clazz.getName());
         }
@@ -45,7 +50,7 @@ public class ClassScanner {
         return controllerClassNames;
     }
 
-    public static List<Class<?>> findAnnotedClasses(Class<? extends Annotation> annotationClass, String packageName) {
+    public static List<Class<?>> findAnnotatedClasses(Class<? extends Annotation> annotationClass, String packageName) {
         List<Class<?>> controllerClasses = new ArrayList<>();
         List<Class<?>> classes = findClassInPackage(packageName);
         for (Class<?> clazz : classes) {
