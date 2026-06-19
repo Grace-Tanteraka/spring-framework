@@ -1,14 +1,14 @@
 package mg.itu.grace.dto;
 
-public class ControllerMethodUrlMatch {
+public class ControllerMethodUrlDto {
     private String url;
     private String controllerClassName;
     private String methodName;
 
-    public ControllerMethodUrlMatch() {
+    public ControllerMethodUrlDto() {
     }
 
-    public ControllerMethodUrlMatch(String url, String controllerClassName, String methodName) {
+    public ControllerMethodUrlDto(String url, String controllerClassName, String methodName) {
         this.url = url;
         this.controllerClassName = controllerClassName;
         this.methodName = methodName;
