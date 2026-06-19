@@ -6,10 +6,38 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.lang.annotation.Annotation;
 
+import mg.itu.grace.dto.ControllerMethodUrlMatch;
+
 public class ClassScanner {
+    public static List<ControllerMethodUrlMatch> findSupportedUrl(String controllerPackage) {
+        List<Class<?>> controllerClasses = findAnnotedClasses(mg.itu.grace.annotations.Controller.class, controllerPackage);
+        List<ControllerMethodUrlMatch> supportedUrls = new ArrayList<>();
+        for (Class<?> clazz : controllerClasses) {
+            if (clazz.isAnnotationPresent(mg.itu.grace.annotations.Controller.class)) {
+                for (java.lang.reflect.Method method : clazz.getDeclaredMethods()) {
+                    if (method.isAnnotationPresent(mg.itu.grace.annotations.UrlMapping.class)) {
+                        mg.itu.grace.annotations.UrlMapping urlMapping = method.getAnnotation(mg.itu.grace.annotations.UrlMapping.class);
+
+                        supportedUrls.add(new ControllerMethodUrlMatch(urlMapping.url(), clazz.getName(), method.getName()));
+                    }
+                }
+            }
+        }
+        return supportedUrls;
+    }
+
+    public static ControllerMethodUrlMatch isSupportedUrl(String url, List<ControllerMethodUrlMatch> supportedUrls) {
+        for (ControllerMethodUrlMatch match : supportedUrls) {
+            if (url.endsWith(match.getUrl())) {
+                return match;
+            }
+        }
+        return null;
+    }
+
     public static List<String> findControllerClassNames(Class<? extends Annotation> annotationClass, String packageName) {
         List<String> controllerClassNames = new ArrayList<>();
-        List<Class<?>> classes = findControllerClasses(annotationClass, packageName);
+        List<Class<?>> classes = findAnnotedClasses(annotationClass, packageName);
         for (Class<?> clazz : classes) {
             controllerClassNames.add(clazz.getName());
         }
@@ -17,7 +45,7 @@ public class ClassScanner {
         return controllerClassNames;
     }
 
-    public static List<Class<?>> findControllerClasses(Class<? extends Annotation> annotationClass, String packageName) {
+    public static List<Class<?>> findAnnotedClasses(Class<? extends Annotation> annotationClass, String packageName) {
         List<Class<?>> controllerClasses = new ArrayList<>();
         List<Class<?>> classes = findClassInPackage(packageName);
         for (Class<?> clazz : classes) {
