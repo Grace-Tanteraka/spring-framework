@@ -4,12 +4,12 @@ import java.util.List;
 import java.io.File;
 import java.net.URL;
 import java.util.ArrayList;
-import mg.itu.grace.annotations.Controller;
+import java.lang.annotation.Annotation;
 
 public class ClassScanner {
-    public static List<String> findControllerClassNames(String packageName) {
+    public static List<String> findControllerClassNames(Class<? extends Annotation> annotationClass, String packageName) {
         List<String> controllerClassNames = new ArrayList<>();
-        List<Class<?>> classes = findControllerClasses(packageName);
+        List<Class<?>> classes = findControllerClasses(annotationClass, packageName);
         for (Class<?> clazz : classes) {
             controllerClassNames.add(clazz.getName());
         }
@@ -17,11 +17,11 @@ public class ClassScanner {
         return controllerClassNames;
     }
 
-    public static List<Class<?>> findControllerClasses(String packageName) {
+    public static List<Class<?>> findControllerClasses(Class<? extends Annotation> annotationClass, String packageName) {
         List<Class<?>> controllerClasses = new ArrayList<>();
         List<Class<?>> classes = findClassInPackage(packageName);
         for (Class<?> clazz : classes) {
-            if (clazz.isAnnotationPresent(Controller.class)) {
+            if (clazz.isAnnotationPresent(annotationClass)) {
                 controllerClasses.add(clazz);
             }
         }
