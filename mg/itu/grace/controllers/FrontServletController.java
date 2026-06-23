@@ -54,19 +54,14 @@ public class FrontServletController extends HttpServlet {
 
         PrintWriter out = resp.getWriter();
 
-        //out.println("Context Path: " + req.getContextPath());
-        String baseUrl = req.getScheme() + "://" + 
-                     req.getServerName() + ":" + 
-                     req.getServerPort() + 
-                     req.getContextPath();
-
         //out.println("Base URL: " + baseUrl);
-        
-        ControllerMethodUrlDto match = ClassScanner.isSupportedUrl(baseUrl, url, supportedUrls);
-        if(match != null) {
+        url = ClassScanner.formatUrl(req);
+        ControllerMethodUrlDto match = null;
+        try {
+            match = ClassScanner.isSupportedUrl(url, supportedUrls); 
             out.println(match.toString());
-        } else {
-            out.println("URL : "+url+" is not supported.");
+        } catch (Exception e) {
+            out.println(e.getMessage());
             out.println("Supported URLs:");
             for (ControllerMethodUrlDto supportedUrl : supportedUrls) {
                 out.println(supportedUrl.toString());
