@@ -6,6 +6,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.lang.annotation.Annotation;
 
+import jakarta.servlet.http.*;
+
 import mg.itu.grace.dto.ControllerMethodUrlDto;
 
 public class ClassScanner {
@@ -29,14 +31,19 @@ public class ClassScanner {
         return supportedUrls;
     }
 
-    public static ControllerMethodUrlDto isSupportedUrl(String baseUrl, String url, List<ControllerMethodUrlDto> supportedUrls) {
+    public static String formatUrl(HttpServletRequest req) {
+        String baseUrl = req.getRequestURI();
+        String contextPath = req.getContextPath();
+        return  baseUrl.substring(contextPath.length());
+    }
+
+    public static ControllerMethodUrlDto isSupportedUrl(String url, List<ControllerMethodUrlDto> supportedUrls) throws Exception{
         for (ControllerMethodUrlDto match : supportedUrls) {
-            String trueUrl = baseUrl + match.getUrl();
-            if(url.equals(trueUrl) || url.equals(trueUrl+"/")) {
+            if(url.equals(match.getUrl()) || url.equals(match.getUrl()+"/")) {
                 return match;
             }
         }
-        return null;
+        throw new Exception("No matching URL found for: " + url);
     }
 
     public static List<String> findAnnotatedClassNames(Class<? extends Annotation> annotationClass,
