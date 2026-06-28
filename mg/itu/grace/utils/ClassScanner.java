@@ -10,7 +10,9 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
 import jakarta.servlet.http.*;
+
 import mg.itu.grace.dto.ControllerMethod;
+import mg.itu.grace.dto.UrlMethod;
 import mg.itu.grace.annotations.*;
 
 public class ClassScanner {
@@ -20,13 +22,13 @@ public class ClassScanner {
         return baseUrl.substring(contextPath.length());
     }
 
-    public ControllerMethod isSupportedUrl(String url, Map<String, ControllerMethod> supportedUrls) throws Exception {
-        if (!supportedUrls.containsKey(url))
-            throw new Exception("No matching URL found for: " + url);
-        return supportedUrls.get(url);
+    public ControllerMethod validateUrlMethod(UrlMethod urlMethod, Map<UrlMethod, ControllerMethod> supportedUrls) throws Exception {
+        if (!supportedUrls.containsKey(urlMethod))
+            throw new Exception("No matching URL found for: " + urlMethod);
+        return supportedUrls.get(urlMethod);
     }
 
-    public List<Class<?>> findControllerClasses(String packageName, Map<String, ControllerMethod> methodUrlsmap) {
+    public List<Class<?>> findControllerClasses(String packageName, Map<UrlMethod, ControllerMethod> methodUrlsmap) {
         List<Class<?>> list = new ArrayList<>();
 
         if (packageName == null || packageName.isEmpty() || packageName.equalsIgnoreCase("ALL")) {
@@ -53,7 +55,7 @@ public class ClassScanner {
     }
 
     public void scanDirectoryForController(File directory, String packageName, List<Class<?>> classes,
-            Map<String, ControllerMethod> methodUrlsmap)
+            Map<UrlMethod, ControllerMethod> methodUrlsmap)
             throws ClassNotFoundException {
         File[] files = directory.listFiles();
         if (files == null)
@@ -75,7 +77,7 @@ public class ClassScanner {
                     for (Method meth : belongedMethods) {
                         if (meth.isAnnotationPresent(UrlMapping.class)) {
                             UrlMapping urlMapping = meth.getAnnotation(UrlMapping.class);
-                            methodUrlsmap.put(urlMapping.url(), new ControllerMethod(clazz, meth));
+                            methodUrlsmap.put(new UrlMethod(urlMapping.url(), urlMapping.method()), new ControllerMethod(clazz, meth));
                         }
                     }
                 }
