@@ -20,3 +20,13 @@ Objectif: savoir quel URL est associé à une methode
 Lorsqu'un url est entree on verifie si elle est supportée ou non
 - Si oui, on affiche la methode dont elle est liee
 - Sinon, on lève une Exception et on affiche la liste de tous les liens supportés
+
+## Split 3
+Objectif: savoir quelle est la method GET/POST
+- Creation d'une classe URLMethod : url + methode (GET/POST)
+- Update de la classe ControllerMethodDto : class<?>, methode
+- Update de l'annotaion UrlMapping : ajout d'un atttribut pour la methode
+
+## Split 3 Bis
+Objectif: excecuter la methode associer à l'url
+- essayer avec un system.out.println puis voir dans le console du navigateur
