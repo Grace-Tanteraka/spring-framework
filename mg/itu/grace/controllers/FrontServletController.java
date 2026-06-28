@@ -5,23 +5,28 @@ import java.io.PrintWriter;
 
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
+
 import mg.itu.grace.utils.ClassScanner;
 import mg.itu.grace.annotations.Controller;
+import mg.itu.grace.dto.ControllerMethod;
 
-import mg.itu.grace.dto.ControllerMethodUrlDto;
 import java.util.List;
-
+import java.util.Map;
+import java.util.HashMap;
 public class FrontServletController extends HttpServlet {
-    private List<ControllerMethodUrlDto> supportedUrls = new java.util.ArrayList<>();
+    private ClassScanner classScanner;
+    private List<Class<?>> controllerClasses;
+    private Map<String, ControllerMethod> urlMethodMap = new HashMap<>();
 
     public void init() throws ServletException {
+        classScanner = new ClassScanner();
         String longPackageName = getInitParameter("controller-base-package");
         if (longPackageName == null || longPackageName.isEmpty()) {
-            supportedUrls = ClassScanner.findSupportedUrl("ALL");
+            controllerClasses = classScanner.findControllerClasses("ALL", urlMethodMap);
         } else {
             String[] packageName = longPackageName.split(";");
             for (String pkg : packageName) {
-                supportedUrls.addAll(ClassScanner.findSupportedUrl(pkg));
+                controllerClasses = classScanner.findControllerClasses(pkg, urlMethodMap);
             }
         }
     }
@@ -43,6 +48,7 @@ public class FrontServletController extends HttpServlet {
             HttpServletResponse resp) throws ServletException, IOException {
 
         String url = req.getRequestURL().toString();
+        
 
         String[] endPathUsingDefault = {".html", ".css", ".js", ".png", ".jpg", ".gif", ".ico", ".woff", ".woff2", ".ttf", ".eot", ".svg", ".mp4", ".webm", ".ogg", ".mp3", ".wav", ".pdf", ".jsp", ".json", ".xml", ".txt", ".csv", ".zip", ".tar", ".gz", ".rar", ".7z"};
         for (String end : endPathUsingDefault) {
@@ -55,16 +61,21 @@ public class FrontServletController extends HttpServlet {
         PrintWriter out = resp.getWriter();
 
         //out.println("Base URL: " + baseUrl);
-        url = ClassScanner.formatUrl(req);
-        ControllerMethodUrlDto match = null;
+        url = classScanner.formatUrl(req);
+        ControllerMethod match = null;
         try {
-            match = ClassScanner.isSupportedUrl(url, supportedUrls); 
-            out.println(match.toString());
+            match = classScanner.isSupportedUrl(url, urlMethodMap); 
+            String toPrint = url + " -> " + match.getControllerClass().getName() + " (" + match.getAssociatedMethod().getName() + ")"; 
+            out.println(toPrint);
         } catch (Exception e) {
-            out.println(e.getMessage());
+            out.println(e.getMessage() + "\n");
             out.println("Supported URLs:");
-            for (ControllerMethodUrlDto supportedUrl : supportedUrls) {
-                out.println(supportedUrl.toString());
+
+            // Print all supported URLs
+            for (String supportedUrl : urlMethodMap.keySet()) {
+                ControllerMethod method = urlMethodMap.get(supportedUrl);
+                String toPrint = supportedUrl + " -> " + method.getControllerClass().getName() + " (" + method.getAssociatedMethod().getName() + ")";
+                out.println(toPrint);
             }
         }
     }
