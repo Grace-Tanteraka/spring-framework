@@ -30,5 +30,12 @@ public class ControllerMethod {
         this.associatedMethod = associatedMethod;
     }
 
-    
+    public void execute(){
+        try {
+            Object controllerInstance = controllerClass.getDeclaredConstructor().newInstance();
+            associatedMethod.invoke(controllerInstance);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }
