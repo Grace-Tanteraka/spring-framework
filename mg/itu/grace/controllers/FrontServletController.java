@@ -77,6 +77,7 @@ public class FrontServletController extends HttpServlet {
             String toPrint = urlMethod.toString() + " -> " + match.getControllerClass().getName() + " ("
                     + match.getAssociatedMethod().getName() + ")";
             out.println(toPrint);
+            match.execute();
         } catch (Exception e) {
             out.println(e.getMessage() + "\n");
             out.println("Supported URLs:");
