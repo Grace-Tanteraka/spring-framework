@@ -10,7 +10,9 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
 import jakarta.servlet.http.*;
+
 import mg.itu.grace.dto.ControllerMethod;
+import mg.itu.grace.dto.UrlMethod;
 import mg.itu.grace.annotations.*;
 
 public class ClassScanner {
@@ -20,41 +22,39 @@ public class ClassScanner {
         return baseUrl.substring(contextPath.length());
     }
 
-    public ControllerMethod isSupportedUrl(String url, Map<String, ControllerMethod> supportedUrls) throws Exception {
-        if (!supportedUrls.containsKey(url))
-            throw new Exception("No matching URL found for: " + url);
-        return supportedUrls.get(url);
+    public ControllerMethod validateUrlMethod(UrlMethod urlMethod, Map<UrlMethod, ControllerMethod> supportedUrls)
+            throws Exception {
+        if (!supportedUrls.containsKey(urlMethod))
+            throw new Exception("No matching URL found for: " + urlMethod);
+        return supportedUrls.get(urlMethod);
     }
 
-    public List<Class<?>> findControllerClasses(String packageName, Map<String, ControllerMethod> methodUrlsmap) {
+    public List<Class<?>> findControllerClasses(String packageName, Map<UrlMethod, ControllerMethod> methodUrlsmap)
+            throws Exception {
         List<Class<?>> list = new ArrayList<>();
 
         if (packageName == null || packageName.isEmpty() || packageName.equalsIgnoreCase("ALL")) {
             packageName = "";
         }
 
-        try {
-            String path = packageName.replace('.', '/');
-            ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        String path = packageName.replace('.', '/');
+        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 
-            URL resource = classLoader.getResource(path);
+        URL resource = classLoader.getResource(path);
 
-            if (resource != null) {
-                File directory = new File(resource.getFile());
-                if (directory.exists()) {
-                    scanDirectoryForController(directory, packageName, list, methodUrlsmap);
-                }
+        if (resource != null) {
+            File directory = new File(resource.getFile());
+            if (directory.exists()) {
+                scanDirectoryForController(directory, packageName, list, methodUrlsmap);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
 
         return list;
     }
 
     public void scanDirectoryForController(File directory, String packageName, List<Class<?>> classes,
-            Map<String, ControllerMethod> methodUrlsmap)
-            throws ClassNotFoundException {
+            Map<UrlMethod, ControllerMethod> methodUrlsmap)
+            throws ClassNotFoundException, Exception {
         File[] files = directory.listFiles();
         if (files == null)
             return;
@@ -75,7 +75,12 @@ public class ClassScanner {
                     for (Method meth : belongedMethods) {
                         if (meth.isAnnotationPresent(UrlMapping.class)) {
                             UrlMapping urlMapping = meth.getAnnotation(UrlMapping.class);
-                            methodUrlsmap.put(urlMapping.url(), new ControllerMethod(clazz, meth));
+                            UrlMethod urlmMethod = new UrlMethod(urlMapping.url(), urlMapping.method());
+                            if (methodUrlsmap.containsKey(urlmMethod)) {
+                                throw new RuntimeException("Duplicate URL mapping found for: " + urlmMethod
+                                        + " in class: " + clazz.getName() + " method: " + meth.getName());
+                            }
+                            methodUrlsmap.put(urlmMethod, new ControllerMethod(clazz, meth));
                         }
                     }
                 }
@@ -131,7 +136,6 @@ public class ClassScanner {
 
         return classes;
     }
-
 
     private void scanDirectory(File directory, String packageName, List<Class<?>> classes)
             throws ClassNotFoundException {
