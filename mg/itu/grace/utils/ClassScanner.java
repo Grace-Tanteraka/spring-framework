@@ -22,33 +22,31 @@ public class ClassScanner {
         return baseUrl.substring(contextPath.length());
     }
 
-    public ControllerMethod validateUrlMethod(UrlMethod urlMethod, Map<UrlMethod, ControllerMethod> supportedUrls) throws Exception {
+    public ControllerMethod validateUrlMethod(UrlMethod urlMethod, Map<UrlMethod, ControllerMethod> supportedUrls)
+            throws Exception {
         if (!supportedUrls.containsKey(urlMethod))
             throw new Exception("No matching URL found for: " + urlMethod);
         return supportedUrls.get(urlMethod);
     }
 
-    public List<Class<?>> findControllerClasses(String packageName, Map<UrlMethod, ControllerMethod> methodUrlsmap) {
+    public List<Class<?>> findControllerClasses(String packageName, Map<UrlMethod, ControllerMethod> methodUrlsmap)
+            throws Exception {
         List<Class<?>> list = new ArrayList<>();
 
         if (packageName == null || packageName.isEmpty() || packageName.equalsIgnoreCase("ALL")) {
             packageName = "";
         }
 
-        try {
-            String path = packageName.replace('.', '/');
-            ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        String path = packageName.replace('.', '/');
+        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
 
-            URL resource = classLoader.getResource(path);
+        URL resource = classLoader.getResource(path);
 
-            if (resource != null) {
-                File directory = new File(resource.getFile());
-                if (directory.exists()) {
-                    scanDirectoryForController(directory, packageName, list, methodUrlsmap);
-                }
+        if (resource != null) {
+            File directory = new File(resource.getFile());
+            if (directory.exists()) {
+                scanDirectoryForController(directory, packageName, list, methodUrlsmap);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
 
         return list;
@@ -56,7 +54,7 @@ public class ClassScanner {
 
     public void scanDirectoryForController(File directory, String packageName, List<Class<?>> classes,
             Map<UrlMethod, ControllerMethod> methodUrlsmap)
-            throws ClassNotFoundException {
+            throws ClassNotFoundException, Exception {
         File[] files = directory.listFiles();
         if (files == null)
             return;
@@ -77,7 +75,12 @@ public class ClassScanner {
                     for (Method meth : belongedMethods) {
                         if (meth.isAnnotationPresent(UrlMapping.class)) {
                             UrlMapping urlMapping = meth.getAnnotation(UrlMapping.class);
-                            methodUrlsmap.put(new UrlMethod(urlMapping.url(), urlMapping.method()), new ControllerMethod(clazz, meth));
+                            UrlMethod urlmMethod = new UrlMethod(urlMapping.url(), urlMapping.method());
+                            if (methodUrlsmap.containsKey(urlmMethod)) {
+                                throw new RuntimeException("Duplicate URL mapping found for: " + urlmMethod
+                                        + " in class: " + clazz.getName() + " method: " + meth.getName());
+                            }
+                            methodUrlsmap.put(urlmMethod, new ControllerMethod(clazz, meth));
                         }
                     }
                 }
@@ -133,7 +136,6 @@ public class ClassScanner {
 
         return classes;
     }
-
 
     private void scanDirectory(File directory, String packageName, List<Class<?>> classes)
             throws ClassNotFoundException {
