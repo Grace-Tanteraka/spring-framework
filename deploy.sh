@@ -31,6 +31,6 @@ jar -cvf $APP_NAME.jar -C ./bin .
 
 echo ""
 
-echo "Déploiement terminé. Redémarrez Tomcat si nécessaire."
+echo "Fichier .jar généré avec succès : $BUILD_DIR/$APP_NAME.jar"
 
 echo ""
