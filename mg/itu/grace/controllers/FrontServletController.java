@@ -21,21 +21,9 @@ public class FrontServletController extends HttpServlet {
     private Map<UrlMethod, ControllerMethod> urlMethodMap = new HashMap<>();
 
     public void init() throws ServletException {
-        classScanner = new ClassScanner();
-        String longPackageName = getInitParameter("controller-base-package");
-        controllerClasses = new java.util.ArrayList<>();
-        try {
-            if (longPackageName == null || longPackageName.isEmpty()) {
-                controllerClasses.addAll(classScanner.findControllerClasses("ALL", urlMethodMap));
-            } else {
-                String[] packageNames = longPackageName.split(";");
-                for (String pkg : packageNames) {
-                    controllerClasses.addAll(classScanner.findControllerClasses(pkg.trim(), urlMethodMap));
-                }
-            }
-        } catch (Exception e) {
-            throw new ServletException("Échec de l'initialisation du FrontServletController : " + e.getMessage(), e);
-        }
+        classScanner = (ClassScanner) this.getServletContext().getAttribute("classScanner");
+        controllerClasses = (List<Class<?>>) this.getServletContext().getAttribute("controllerClasses");
+        urlMethodMap = (Map<UrlMethod, ControllerMethod>) this.getServletContext().getAttribute("urlMethodMap");
     }
 
     protected void doGet(
