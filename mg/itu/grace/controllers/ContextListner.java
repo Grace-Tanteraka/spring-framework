@@ -17,6 +17,8 @@ import mg.itu.grace.utils.ClassScanner;
 @WebListener
 public class ContextListner implements ServletContextListener {
     private ClassScanner classScanner = new ClassScanner();
+    private String viewsBasePath = "/WEB-INF/views/";
+    private String viewsExtension = ".jsp";
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
@@ -24,6 +26,10 @@ public class ContextListner implements ServletContextListener {
         Map<UrlMethod, ControllerMethod> urlMethodMap = new HashMap<>();
         ServletContext context = sce.getServletContext();
         String longPackageName = context.getInitParameter("controller-base-package");
+        viewsBasePath = context.getInitParameter("viewsBasePath") != null ? context.getInitParameter("viewsBasePath")
+                : viewsBasePath;
+        viewsExtension = context.getInitParameter("viewsExtension") != null ? context.getInitParameter("viewsExtension")
+                : viewsExtension;
         try {
             if (longPackageName == null || longPackageName.isEmpty()) {
                 controllerClasses.addAll(classScanner.findControllerClasses("ALL", urlMethodMap));
@@ -37,6 +43,8 @@ public class ContextListner implements ServletContextListener {
             context.setAttribute("classScanner", classScanner);
             context.setAttribute("controllerClasses", controllerClasses);
             context.setAttribute("urlMethodMap", urlMethodMap);
+            context.setAttribute("viewsBasePath", viewsBasePath);
+            context.setAttribute("viewsExtension", viewsExtension);
         } catch (Exception e) {
             e.printStackTrace();
         }
