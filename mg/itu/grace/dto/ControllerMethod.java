@@ -30,12 +30,14 @@ public class ControllerMethod {
         this.associatedMethod = associatedMethod;
     }
 
-    public void execute(){
+    public Object execute(){
         try {
             Object controllerInstance = controllerClass.getDeclaredConstructor().newInstance();
-            associatedMethod.invoke(controllerInstance);
+            Object result = associatedMethod.invoke(controllerInstance);
+            return result;
         } catch (Exception e) {
             e.printStackTrace();
         }
+        return null;
     }
 }
