@@ -20,18 +20,16 @@ public class FrontServletController extends HttpServlet {
     private ClassScanner classScanner;
     private List<Class<?>> controllerClasses;
     private Map<UrlMethod, ControllerMethod> urlMethodMap = new HashMap<>();
-    private String viewsBasePath = "/WEB-INF/views/";
-    private String viewsExtension = ".jsp";
+    private String viewsBasePath = "";
+    private String viewsExtension = "";
 
     public void init() throws ServletException {
         classScanner = (ClassScanner) this.getServletContext().getAttribute("classScanner");
         controllerClasses = (List<Class<?>>) this.getServletContext().getAttribute("controllerClasses");
         urlMethodMap = (Map<UrlMethod, ControllerMethod>) this.getServletContext().getAttribute("urlMethodMap");
 
-        viewsBasePath = this.getInitParameter("viewsBasePath") != null ? this.getInitParameter("viewsBasePath")
-                : viewsBasePath;
-        viewsExtension = this.getInitParameter("viewsExtension") != null ? this.getInitParameter("viewsExtension")
-                : viewsExtension;
+        viewsBasePath = (String) this.getServletContext().getAttribute("viewsBasePath");
+        viewsExtension = (String) this.getServletContext().getAttribute("viewsExtension");
     }
 
     protected void doGet(
@@ -91,7 +89,9 @@ public class FrontServletController extends HttpServlet {
                 String toPrint = urlMethod.toString() + " -> " + match.getControllerClass().getName() + " ("
                         + match.getAssociatedMethod().getName() + ")";
                 out.println(toPrint);
-                out.println("Tsis is the result: " + result.toString());
+                if(result != null) {
+                    out.println("This is the result: " + result.toString());
+                }
             }
         } catch (Exception e) {
             out.println(e.getMessage() + "\n");
