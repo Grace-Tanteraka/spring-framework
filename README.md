@@ -39,5 +39,5 @@ Objectif: utiliser nu contextListener au lieu de init()
 Objectif: Model and view fonctionnel
 - Creer la classe ModelAndView qui aura string viewName et Map<String, Object>
 - Faire les fonctions setViewName() et setAttribute()
-- Ajouter la condition d'execution que c'est du ModelAndView no fait un requestDispatcher forward vers le view
-- Coté developper, on ajoute des init-param dans web.xml pour definir les suffixes et suffixe des fichiers views
+- Ajouter la condition d'execution que si c'est du ModelAndView on fait un requestDispatcher forward vers le view
+- Coté developpeur, on ajoute des init-param dans web.xml pour definir les suffixes et suffixe des fichiers views
