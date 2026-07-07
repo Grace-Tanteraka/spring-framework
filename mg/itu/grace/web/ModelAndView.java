@@ -5,7 +5,7 @@ import java.util.HashMap;
 
 public class ModelAndView {
     private String viewName;
-    private Map<String, Object> attributes = new HashMap<>();
+    private Map<String, Object> attributes;
 
     public ModelAndView(String viewName) {
         this.viewName = viewName;
@@ -24,6 +24,9 @@ public class ModelAndView {
     }
 
     public void setAttribute(String key, Object value) {
+        if (this.attributes == null) {
+            this.attributes = new HashMap<>();
+        }
         attributes.put(key, value);
     }
 
