@@ -7,6 +7,7 @@ import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 
 import mg.itu.grace.utils.ClassScanner;
+import mg.itu.grace.web.ModelAndView;
 import mg.itu.grace.annotations.Controller;
 import mg.itu.grace.dto.ControllerMethod;
 import mg.itu.grace.dto.UrlMethod;
@@ -19,11 +20,16 @@ public class FrontServletController extends HttpServlet {
     private ClassScanner classScanner;
     private List<Class<?>> controllerClasses;
     private Map<UrlMethod, ControllerMethod> urlMethodMap = new HashMap<>();
+    private String viewsBasePath = "";
+    private String viewsExtension = "";
 
     public void init() throws ServletException {
         classScanner = (ClassScanner) this.getServletContext().getAttribute("classScanner");
         controllerClasses = (List<Class<?>>) this.getServletContext().getAttribute("controllerClasses");
         urlMethodMap = (Map<UrlMethod, ControllerMethod>) this.getServletContext().getAttribute("urlMethodMap");
+
+        viewsBasePath = (String) this.getServletContext().getAttribute("viewsBasePath");
+        viewsExtension = (String) this.getServletContext().getAttribute("viewsExtension");
     }
 
     protected void doGet(
@@ -44,8 +50,13 @@ public class FrontServletController extends HttpServlet {
 
         String url = req.getRequestURL().toString();
 
+        if (url.endsWith(".jsp")) {
+            req.getServletContext().getNamedDispatcher("jsp").forward(req, resp);
+            return;
+        }
+
         String[] endPathUsingDefault = { ".html", ".css", ".js", ".png", ".jpg", ".gif", ".ico", ".woff", ".woff2",
-                ".ttf", ".eot", ".svg", ".mp4", ".webm", ".ogg", ".mp3", ".wav", ".pdf", ".jsp", ".json", ".xml",
+                ".ttf", ".eot", ".svg", ".mp4", ".webm", ".ogg", ".mp3", ".wav", ".pdf", ".json", ".xml",
                 ".txt", ".csv", ".zip", ".tar", ".gz", ".rar", ".7z" };
         for (String end : endPathUsingDefault) {
             if (url.endsWith(end)) {
@@ -62,10 +73,26 @@ public class FrontServletController extends HttpServlet {
         try {
             UrlMethod urlMethod = new UrlMethod(url, req.getMethod());
             match = classScanner.validateUrlMethod(urlMethod, urlMethodMap);
-            String toPrint = urlMethod.toString() + " -> " + match.getControllerClass().getName() + " ("
-                    + match.getAssociatedMethod().getName() + ")";
-            out.println(toPrint);
-            match.execute();
+
+            Object result = match.execute();
+            if (result instanceof ModelAndView) {
+                ModelAndView modelAndView = (ModelAndView) result;
+                String viewName = modelAndView.getViewName();
+                String viewPath = viewsBasePath + viewName + viewsExtension;
+
+                for (Map.Entry<String, Object> entry : modelAndView.getAttributes().entrySet()) {
+                    req.setAttribute(entry.getKey(), entry.getValue());
+                }
+
+                req.getRequestDispatcher(viewPath).forward(req, resp);
+            } else {
+                String toPrint = urlMethod.toString() + " -> " + match.getControllerClass().getName() + " ("
+                        + match.getAssociatedMethod().getName() + ")";
+                out.println(toPrint);
+                if(result != null) {
+                    out.println("This is the result: " + result.toString());
+                }
+            }
         } catch (Exception e) {
             out.println(e.getMessage() + "\n");
             out.println("Supported URLs:");
