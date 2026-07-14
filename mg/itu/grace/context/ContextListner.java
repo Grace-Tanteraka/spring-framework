@@ -1,4 +1,4 @@
-package mg.itu.grace.controllers;
+package mg.itu.grace.context;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,11 +10,14 @@ import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
 import jakarta.servlet.annotation.WebListener;
 
+import org.springframework.web.context.support.WebApplicationContextUtils;
+import org.springframework.context.ApplicationContext;
+
 import mg.itu.grace.dto.ControllerMethod;
 import mg.itu.grace.dto.UrlMethod;
 import mg.itu.grace.utils.ClassScanner;
 
-@WebListener
+//@WebListener
 public class ContextListner implements ServletContextListener {
     private ClassScanner classScanner = new ClassScanner();
     private String viewsBasePath = "/WEB-INF/views/";
@@ -22,9 +25,14 @@ public class ContextListner implements ServletContextListener {
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
+        ServletContext context = sce.getServletContext();
+
+        ApplicationContext springContext = WebApplicationContextUtils
+            .getRequiredWebApplicationContext(sce.getServletContext());
+        context.setAttribute("SPRING_CONTEXT", springContext);
+
         List<Class<?>> controllerClasses = new ArrayList<>();
         Map<UrlMethod, ControllerMethod> urlMethodMap = new HashMap<>();
-        ServletContext context = sce.getServletContext();
         String longPackageName = context.getInitParameter("controller-base-package");
         viewsBasePath = context.getInitParameter("viewsBasePath") != null ? context.getInitParameter("viewsBasePath")
                 : viewsBasePath;
