@@ -5,14 +5,16 @@ APP_NAME="graceframework"
 SRC_DIR="./"
 BUILD_DIR="bin"
 LIB_DIR="lib"
-SERVLET_API_JAR="$LIB_DIR/servlet-api.jar"
 
 # Nettoyage et création du répertoire temporaire
 rm -rf $BUILD_DIR
+mkdir -p $BUILD_DIR
 
-# Compilation des fichiers Java avec le JAR des Servlets
+# Compilation de tous les fichiers Java en incluant tout le dossier lib dans le classpath
 find $SRC_DIR -name "*.java" > sources.txt
-javac -cp $SERVLET_API_JAR -d $BUILD_DIR @sources.txt
+
+# /!\ Note le "lib/*" (sans oublier les guillemets pour éviter l'expansion du shell)
+javac -cp "$LIB_DIR/*" -d $BUILD_DIR @sources.txt
 rm sources.txt
 
 # Copier les fichiers web (web.xml, JSP, etc.)
