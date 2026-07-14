@@ -1,5 +1,6 @@
 package mg.itu.grace.context;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -9,9 +10,6 @@ import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
 import jakarta.servlet.annotation.WebListener;
-
-import org.springframework.web.context.support.WebApplicationContextUtils;
-import org.springframework.context.ApplicationContext;
 
 import mg.itu.grace.dto.ControllerMethod;
 import mg.itu.grace.dto.UrlMethod;
@@ -27,8 +25,19 @@ public class ContextListner implements ServletContextListener {
     public void contextInitialized(ServletContextEvent sce) {
         ServletContext context = sce.getServletContext();
 
-        ApplicationContext springContext = WebApplicationContextUtils
-            .getRequiredWebApplicationContext(sce.getServletContext());
+        Object springContext = null;
+        try {
+            Class<?> utilsClass = Class.forName("org.springframework.web.context.support.WebApplicationContextUtils");
+            Method getContextMethod = utilsClass.getMethod("getRequiredWebApplicationContext", ServletContext.class);
+            
+            // springContext est un simple java.lang.Object !
+            springContext = getContextMethod.invoke(null, context);
+            
+        } catch (ClassNotFoundException e) {
+            System.err.println("Spring Framework is not available in the classpath.");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         context.setAttribute("SPRING_CONTEXT", springContext);
 
         List<Class<?>> controllerClasses = new ArrayList<>();
