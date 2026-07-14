@@ -25,7 +25,7 @@ public class FrontServletController extends HttpServlet {
     private Map<UrlMethod, ControllerMethod> urlMethodMap = new HashMap<>();
     private String viewsBasePath = "";
     private String viewsExtension = "";
-    private ApplicationContext applicationContext;
+    private Object applicationContext;
 
     public void init() throws ServletException {
         ServletContext context = this.getServletContext();
@@ -36,7 +36,7 @@ public class FrontServletController extends HttpServlet {
         viewsBasePath = (String) context.getAttribute("viewsBasePath");
         viewsExtension = (String) context.getAttribute("viewsExtension");
 
-        applicationContext = (ApplicationContext) context.getAttribute("SPRING_CONTEXT");
+        applicationContext = context.getAttribute("SPRING_CONTEXT");
     }
 
     protected void doGet(
