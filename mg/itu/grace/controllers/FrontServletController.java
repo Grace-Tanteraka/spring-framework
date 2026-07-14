@@ -6,9 +6,6 @@ import java.io.PrintWriter;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 
-import org.springframework.web.context.support.WebApplicationContextUtils;
-import org.springframework.context.ApplicationContext;
-
 import mg.itu.grace.utils.ClassScanner;
 import mg.itu.grace.web.ModelAndView;
 import mg.itu.grace.annotations.Controller;
