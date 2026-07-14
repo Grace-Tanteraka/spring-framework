@@ -6,6 +6,9 @@ import java.io.PrintWriter;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 
+import org.springframework.web.context.support.WebApplicationContextUtils;
+import org.springframework.context.ApplicationContext;
+
 import mg.itu.grace.utils.ClassScanner;
 import mg.itu.grace.web.ModelAndView;
 import mg.itu.grace.annotations.Controller;
@@ -22,14 +25,18 @@ public class FrontServletController extends HttpServlet {
     private Map<UrlMethod, ControllerMethod> urlMethodMap = new HashMap<>();
     private String viewsBasePath = "";
     private String viewsExtension = "";
+    private ApplicationContext applicationContext;
 
     public void init() throws ServletException {
-        classScanner = (ClassScanner) this.getServletContext().getAttribute("classScanner");
-        controllerClasses = (List<Class<?>>) this.getServletContext().getAttribute("controllerClasses");
-        urlMethodMap = (Map<UrlMethod, ControllerMethod>) this.getServletContext().getAttribute("urlMethodMap");
+        ServletContext context = this.getServletContext();
+        classScanner = (ClassScanner) context.getAttribute("classScanner");
+        controllerClasses = (List<Class<?>>) context.getAttribute("controllerClasses");
+        urlMethodMap = (Map<UrlMethod, ControllerMethod>) context.getAttribute("urlMethodMap");
 
-        viewsBasePath = (String) this.getServletContext().getAttribute("viewsBasePath");
-        viewsExtension = (String) this.getServletContext().getAttribute("viewsExtension");
+        viewsBasePath = (String) context.getAttribute("viewsBasePath");
+        viewsExtension = (String) context.getAttribute("viewsExtension");
+
+        applicationContext = (ApplicationContext) context.getAttribute("SPRING_CONTEXT");
     }
 
     protected void doGet(
@@ -74,7 +81,7 @@ public class FrontServletController extends HttpServlet {
             UrlMethod urlMethod = new UrlMethod(url, req.getMethod());
             match = classScanner.validateUrlMethod(urlMethod, urlMethodMap);
 
-            Object result = match.execute();
+            Object result = match.execute(applicationContext);
             if (result instanceof ModelAndView) {
                 ModelAndView modelAndView = (ModelAndView) result;
                 String viewName = modelAndView.getViewName();
