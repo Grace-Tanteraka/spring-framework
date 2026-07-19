@@ -31,21 +31,20 @@ public class ControllerMethod {
         this.associatedMethod = associatedMethod;
     }
 
-    public Object execute(ApplicationContext context) {
+    public Object execute(Object context) {
         try {
             Object controllerInstance = controllerClass.getDeclaredConstructor().newInstance();
             Class<?>[] parameterTypes = associatedMethod.getParameterTypes();
             Object[] parameters = new Object[parameterTypes.length];
 
             for (int i = 0; i < parameterTypes.length; i++) {
-                if (parameterTypes[i].equals(ApplicationContext.class)) {
+                if (parameterTypes[i].getName().equals("org.springframework.context.ApplicationContext") && context != null) {
                     parameters[i] = context;
                 } else {
                     parameters[i] = null;
                 }
             }
 
-            // 3. Invoquer la méthode avec le tableau d'arguments généré
             return associatedMethod.invoke(controllerInstance, parameters);
         } catch (Exception e) {
             e.printStackTrace();

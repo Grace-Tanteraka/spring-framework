@@ -6,9 +6,6 @@ import java.io.PrintWriter;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 
-import org.springframework.web.context.support.WebApplicationContextUtils;
-import org.springframework.context.ApplicationContext;
-
 import mg.itu.grace.utils.ClassScanner;
 import mg.itu.grace.web.ModelAndView;
 import mg.itu.grace.annotations.Controller;
@@ -25,7 +22,7 @@ public class FrontServletController extends HttpServlet {
     private Map<UrlMethod, ControllerMethod> urlMethodMap = new HashMap<>();
     private String viewsBasePath = "";
     private String viewsExtension = "";
-    private ApplicationContext applicationContext;
+    private Object applicationContext;
 
     public void init() throws ServletException {
         ServletContext context = this.getServletContext();
@@ -36,7 +33,7 @@ public class FrontServletController extends HttpServlet {
         viewsBasePath = (String) context.getAttribute("viewsBasePath");
         viewsExtension = (String) context.getAttribute("viewsExtension");
 
-        applicationContext = (ApplicationContext) context.getAttribute("SPRING_CONTEXT");
+        applicationContext = context.getAttribute("SPRING_CONTEXT");
     }
 
     protected void doGet(
