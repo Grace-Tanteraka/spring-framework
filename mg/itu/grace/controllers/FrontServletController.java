@@ -11,6 +11,7 @@ import jakarta.servlet.http.*;
 import mg.itu.grace.utils.ClassScanner;
 import mg.itu.grace.web.ModelAndView;
 import mg.itu.grace.annotations.Controller;
+import mg.itu.grace.annotations.WebAPI;
 import mg.itu.grace.dto.ControllerMethod;
 import mg.itu.grace.dto.UrlMethod;
 
@@ -87,7 +88,14 @@ public class FrontServletController extends HttpServlet {
                 resp.setContentType("application/json");
                 resp.setCharacterEncoding("UTF-8");
                 if (result instanceof String) {
-                    out.println((String) result);
+                    String toPrint = "";
+                    WebAPI webAPI = associatedMethod.getAnnotation(WebAPI.class);
+                    if(!webAPI.isJson()) {
+                        toPrint = "{ \"data\": \"" + (String) result + "\" }";
+                    } else {
+                        toPrint = (String) result;
+                    }
+                    out.println(toPrint);
                 } else {
                     Gson gson = new Gson();
                     String json = gson.toJson(result);
