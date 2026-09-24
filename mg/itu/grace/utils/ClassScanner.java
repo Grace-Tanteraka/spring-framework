@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 import jakarta.servlet.http.*;
@@ -16,6 +17,11 @@ import mg.itu.grace.dto.UrlMethod;
 import mg.itu.grace.annotations.*;
 
 public class ClassScanner {
+
+    public boolean isWebAPIAnnotated(Method method) {
+        return method.isAnnotationPresent(WebAPI.class);
+    }
+
     public String formatUrl(HttpServletRequest req) {
         String baseUrl = req.getRequestURI();
         String contextPath = req.getContextPath();

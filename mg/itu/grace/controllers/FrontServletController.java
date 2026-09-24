@@ -2,6 +2,8 @@ package mg.itu.grace.controllers;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.lang.reflect.Method;
+import com.google.gson.Gson;
 
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
@@ -78,23 +80,37 @@ public class FrontServletController extends HttpServlet {
             UrlMethod urlMethod = new UrlMethod(url, req.getMethod());
             match = classScanner.validateUrlMethod(urlMethod, urlMethodMap);
 
+            Method associatedMethod = match.getAssociatedMethod();
             Object result = match.execute(applicationContext);
-            if (result instanceof ModelAndView) {
-                ModelAndView modelAndView = (ModelAndView) result;
-                String viewName = modelAndView.getViewName();
-                String viewPath = viewsBasePath + viewName + viewsExtension;
 
-                for (Map.Entry<String, Object> entry : modelAndView.getAttributes().entrySet()) {
-                    req.setAttribute(entry.getKey(), entry.getValue());
+            if (classScanner.isWebAPIAnnotated(associatedMethod)) {
+                resp.setContentType("application/json");
+                resp.setCharacterEncoding("UTF-8");
+                if (result instanceof String) {
+                    out.println((String) result);
+                } else {
+                    Gson gson = new Gson();
+                    String json = gson.toJson(result);
+                    out.println(json);
                 }
-
-                req.getRequestDispatcher(viewPath).forward(req, resp);
             } else {
-                String toPrint = urlMethod.toString() + " -> " + match.getControllerClass().getName() + " ("
-                        + match.getAssociatedMethod().getName() + ")";
-                out.println(toPrint);
-                if(result != null) {
-                    out.println("This is the result: " + result.toString());
+                if (result instanceof ModelAndView) {
+                    ModelAndView modelAndView = (ModelAndView) result;
+                    String viewName = modelAndView.getViewName();
+                    String viewPath = viewsBasePath + viewName + viewsExtension;
+
+                    for (Map.Entry<String, Object> entry : modelAndView.getAttributes().entrySet()) {
+                        req.setAttribute(entry.getKey(), entry.getValue());
+                    }
+
+                    req.getRequestDispatcher(viewPath).forward(req, resp);
+                } else {
+                    String toPrint = urlMethod.toString() + " -> " + match.getControllerClass().getName() + " ("
+                            + match.getAssociatedMethod().getName() + ")";
+                    out.println(toPrint);
+                    if(result != null) {
+                        out.println("This is the result: " + result.toString());
+                    }
                 }
             }
         } catch (Exception e) {
