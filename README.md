@@ -44,9 +44,10 @@ Objectif: Model and view fonctionnel
 
 ## Sprint 5 bis
 Objectif : utiliser la base
+- Utiliser le repository de spring MVC
 
 ## Sprint 6 
 Objectif : construire api
-Construire une annotation sur la methode @webapi
-Au lieu d'aller vers une vue ca retourne du json
-Si type de retour est String on envoie juste ceci sinon on fait toJson()
+- Construire une annotation sur la methode @webapi
+- Au lieu d'aller vers une vue ca retourne du json
+- Si type de retour est String on envoie juste ceci sinon on fait toJson()
