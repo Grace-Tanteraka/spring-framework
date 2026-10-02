@@ -5,7 +5,7 @@ import java.util.HashMap;
 
 public class ModelAndView {
     private String viewName;
-    private Map<String, Object> attributes;
+    private Map<String, Object> attributes = new HashMap<>();
 
     public ModelAndView(String viewName) {
         this.viewName = viewName;
