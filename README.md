@@ -51,3 +51,11 @@ Objectif : construire api
 - Construire une annotation sur la methode @webapi
 - Au lieu d'aller vers une vue ca retourne du json
 - Si type de retour est String on envoie juste ceci sinon on fait toJson()
+
+## Sprint 7
+Objectif : Binding
+- Traiter les donnees envoyees depuis le view 
+- Verifier si la methode a des parametres 
+- la methode d'action appelee dans le controlleur peut avoir des arguments
+- mettre des nulls par tout
+- chercher parmis les requestparameters ce qui match et on remplace les valeurs null;
