@@ -82,7 +82,10 @@ public class FrontServletController extends HttpServlet {
             match = classScanner.validateUrlMethod(urlMethod, urlMethodMap);
 
             Method associatedMethod = match.getAssociatedMethod();
-            Object result = match.execute(applicationContext);
+
+            Map<String, String[]> parameterMap = req.getParameterMap();
+            Object result = match.execute(applicationContext, parameterMap);
+
 
             if (classScanner.isWebAPIAnnotated(associatedMethod)) {
                 resp.setContentType("application/json");
