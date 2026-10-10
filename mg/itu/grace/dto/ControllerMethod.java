@@ -42,7 +42,7 @@ public class ControllerMethod {
         this.associatedMethod = associatedMethod;
     }
 
-    public Object execute(Object context, Map<String, String[]> parameterMap) {
+    public Object execute(Object context, Map<String, String[]> parameterMap) throws Exception{
         try {
             Object controllerInstance = controllerClass.getDeclaredConstructor().newInstance();
             Class<?>[] parameterTypes = associatedMethod.getParameterTypes();
@@ -56,41 +56,14 @@ public class ControllerMethod {
                 } else  {
                     Param annotation = parameter.getAnnotation(mg.itu.grace.annotations.Param.class);
                     String paramName = (annotation != null) ? annotation.value() : parameter.getName();
-                    String[] paramValues = parameterMap.get(paramName);
-                    if (paramValues != null && paramValues.length > 0) {
-                        if (parameterTypes[i].isArray()) {
-                            Class<?> componentType = parameterTypes[i].getComponentType();
-                            parameters[i] = mg.itu.grace.utils.Utils.convertStringToArray(paramValues, componentType);
-                        } else if (paramValues.length == 1) {
-                            String value = paramValues[0];
-                            Class<?> paramType = parameterTypes[i];
-                            parameters[i] = mg.itu.grace.utils.Utils.convertStringToSimpleType(value, paramType);
-                        } else if (Collection.class.isAssignableFrom(parameterTypes[i])) {
-                            Class<?> elementType = String.class; // Par défaut si pas de générique spécifié
-
-                            Type genericType = parameter.getParameterizedType();
-                            if (genericType instanceof ParameterizedType) {
-                                ParameterizedType paramType = (ParameterizedType) genericType;
-                                Type actualArg = paramType.getActualTypeArguments()[0]; // Récupère le premier type <..>
-                                if (actualArg instanceof Class<?>) {
-                                    elementType = (Class<?>) actualArg;
-                                }
-                            }
-                            parameters[i] = mg.itu.grace.utils.Utils.convertStringToCollection(paramValues,
-                                    parameterTypes[i], elementType);
-                        } else {
-                            parameters[i] = paramValues[0];
-                        }
-                    } else {
-                        parameters[i] = null;
-                    }
+                    parameters[i] = Utils.buildObject(parameterTypes[i], parameterMap, paramName);
                 }
             }
 
             return associatedMethod.invoke(controllerInstance, parameters);
         } catch (Exception e) {
             e.printStackTrace();
+            throw e;
         }
-        return null;
     }
 }
