@@ -3,3 +3,6 @@ bin/
 graceframework.jar
 
 README.pdf
+
+.idea
+*.iml

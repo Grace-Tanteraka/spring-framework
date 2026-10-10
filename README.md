@@ -59,3 +59,7 @@ Objectif : Binding
 - la methode d'action appelee dans le controlleur peut avoir des arguments
 - mettre des nulls par tout
 - chercher parmis les requestparameters ce qui match et on remplace les valeurs null;
+
+# Sprint 7 bis
+Objectif : 
+- On teste a donner un objet depuis le view (ex : Employe)
