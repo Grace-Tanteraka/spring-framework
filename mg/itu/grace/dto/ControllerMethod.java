@@ -12,7 +12,8 @@ import java.lang.reflect.Parameter;
 
 import mg.itu.grace.annotations.Param;
 import mg.itu.grace.utils.Utils;
-import org.springframework.context.ApplicationContext;
+
+import jakarta.servlet.http.Part;
 
 public class ControllerMethod {
     private Class<?> controllerClass;
@@ -42,7 +43,7 @@ public class ControllerMethod {
         this.associatedMethod = associatedMethod;
     }
 
-    public Object execute(Object context, Map<String, String[]> parameterMap) throws Exception{
+    public Object execute(Object context, Map<String, String[]> parameterMap, Collection<Part> parts) throws Exception{
         try {
             Object controllerInstance = controllerClass.getDeclaredConstructor().newInstance();
             Class<?>[] parameterTypes = associatedMethod.getParameterTypes();
@@ -56,7 +57,7 @@ public class ControllerMethod {
                 } else  {
                     Param annotation = parameter.getAnnotation(mg.itu.grace.annotations.Param.class);
                     String paramName = (annotation != null) ? annotation.value() : parameter.getName();
-                    parameters[i] = Utils.buildObject(parameterTypes[i], parameterMap, paramName);
+                    parameters[i] = Utils.buildObject(parameterTypes[i], parameterMap, paramName, parts);
                 }
             }
 
