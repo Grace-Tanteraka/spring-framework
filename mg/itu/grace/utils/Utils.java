@@ -1,5 +1,10 @@
 package mg.itu.grace.utils;
 
+import jakarta.servlet.http.Part;
+import mg.itu.grace.dto.MapFile;
+import mg.itu.grace.service.FileStorageService;
+
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -57,6 +62,10 @@ public class Utils {
             collectionInstance.add(convertStringToSimpleType(value, elementType));
         }
         return collectionInstance;
+    }
+
+    public static boolean isMapFile(Class<?> clazz) {
+        return clazz.equals(mg.itu.grace.dto.MapFile.class);
     }
 
     public static boolean isAnObject(Class<?> clazz) {
@@ -140,33 +149,80 @@ public class Utils {
         return instance;
     } */
 
-    public static Object buildObject(Class<?> targetType, Map<String, String[]> parameterMap, String prefix)
-            throws Exception {
-        Object instance = targetType.getDeclaredConstructor().newInstance();
+    private static MapFile getMapFile (Collection<Part> parts, String prefix) throws Exception {
+        Part filePart = parts.stream()
+                .filter(p -> prefix.equals(p.getName()))
+                .findFirst()
+                .orElse(null);
 
-        for (Field targetField : targetType.getDeclaredFields()) {
-            String fieldName = targetField.getName();
-            
-            Method setterMethod = targetType.getDeclaredMethod("set" + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1), targetField.getType());
+        if (filePart != null && filePart.getSize() > 0) {
+            MapFile mapFile = new MapFile();
+            mapFile.setFileName(filePart.getSubmittedFileName());
 
-
-            String fieldPrefix = (prefix != null && !prefix.isEmpty()) ? prefix + "." + fieldName : fieldName;
-
-            if (targetField.getType().isAnnotationPresent(mg.itu.grace.annotations.Model.class) || isAnObject(targetField.getType())) {
-                Object nestedObject = buildObject(targetField.getType(), parameterMap, fieldPrefix);
-                
-                if (nestedObject != null) {
-                    setterMethod.invoke(instance, nestedObject);
-                }
+            String fileName = filePart.getSubmittedFileName();
+            if (fileName != null && fileName.contains(".")) {
+                mapFile.setExtention(fileName.substring(fileName.lastIndexOf(".") + 1));
             } else {
-                String[] paramValues = parameterMap.get(fieldPrefix);
-                if (paramValues != null && paramValues.length > 0) {
-                    Object fieldValue = convertStringToType(paramValues, targetField.getType());
-                    setterMethod.invoke(instance, fieldValue);
+                mapFile.setExtention("");
+            }
+
+            try (InputStream is = filePart.getInputStream()) {
+                mapFile.setFileContent(is.readAllBytes());
+            }
+            return mapFile; // On retourne directement l'objet MapFile
+        }
+        return null;
+    }
+
+    public static Object buildObject(Class<?> targetType, Map<String, String[]> parameterMap, String prefix, Collection<Part> parts)
+            throws Exception {
+
+        if (isMapFile(targetType)) {
+            if (parts != null) {
+                MapFile mapFile = getMapFile(parts,prefix);
+                FileStorageService.saveFileToDisk(mapFile);
+                return mapFile;
+            }
+            return null;
+        } else if (targetType.isAnnotationPresent(mg.itu.grace.annotations.Model.class) || isAnObject(targetType)) {
+
+            Object instance = targetType.getDeclaredConstructor().newInstance();
+
+            for (Field targetField : targetType.getDeclaredFields()) {
+                String fieldName = targetField.getName();
+
+                Method setterMethod = targetType.getDeclaredMethod("set" + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1), targetField.getType());
+
+                String fieldPrefix = (prefix != null && !prefix.isEmpty()) ? prefix + "." + fieldName : fieldName;
+
+                if (isMapFile(targetField.getType())) {
+                    if (parts != null) {
+                        MapFile mapFile = getMapFile(parts, fieldPrefix);
+                        FileStorageService.saveFileToDisk(mapFile);
+                        setterMethod.invoke(instance, mapFile);
+                    }
+                } else if (targetField.getType().isAnnotationPresent(mg.itu.grace.annotations.Model.class) || isAnObject(targetField.getType())) {
+                    Object nestedObject = buildObject(targetField.getType(), parameterMap, fieldPrefix, parts);
+
+                    if (nestedObject != null) {
+                        setterMethod.invoke(instance, nestedObject);
+                    }
+                } else {
+                    String[] paramValues = parameterMap.get(fieldPrefix);
+                    if (paramValues != null && paramValues.length > 0) {
+                        Object fieldValue = convertStringToType(paramValues, targetField.getType());
+                        setterMethod.invoke(instance, fieldValue);
+                    }
                 }
             }
-        }
 
-        return instance;
+            return instance;
+        } else {
+            String[] paramValues = parameterMap.get(prefix);
+            if (paramValues != null && paramValues.length > 0) {
+                return convertStringToType(paramValues, targetType);
+            }
+            return null;
+        }
     }
 }

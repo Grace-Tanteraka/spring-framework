@@ -63,3 +63,12 @@ Objectif : Binding
 # Sprint 7 bis
 Objectif : 
 - On teste a donner un objet depuis le view (ex : Employe)
+
+# Sprint 8
+Objectif : Upload file
+- Methode 1
+    - Creer class MapFile (nom, extention, bites[])
+    - Si la class a un parametre de type MapFile on recupere le fichier et on le met dans le parametre
+- Methode 2
+    - Creer une class dto (misolo map)
+    - ajouter a l'attribut de la fonction d'action (dans le controller)

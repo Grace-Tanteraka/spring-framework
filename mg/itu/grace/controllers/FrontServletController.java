@@ -7,8 +7,10 @@ import com.google.gson.Gson;
 
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
+import jakarta.servlet.annotation.MultipartConfig;
 
 import mg.itu.grace.utils.ClassScanner;
+import mg.itu.grace.utils.ConfigLoader;
 import mg.itu.grace.web.ModelAndView;
 import mg.itu.grace.annotations.Controller;
 import mg.itu.grace.annotations.WebAPI;
@@ -17,8 +19,10 @@ import mg.itu.grace.dto.UrlMethod;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Collection;
 import java.util.HashMap;
 
+@MultipartConfig
 public class FrontServletController extends HttpServlet {
     private ClassScanner classScanner;
     private List<Class<?>> controllerClasses;
@@ -37,6 +41,8 @@ public class FrontServletController extends HttpServlet {
         viewsExtension = (String) context.getAttribute("viewsExtension");
 
         applicationContext = context.getAttribute("SPRING_CONTEXT");
+
+        ConfigLoader.init(context);
     }
 
     protected void doGet(
@@ -83,9 +89,20 @@ public class FrontServletController extends HttpServlet {
 
             Method associatedMethod = match.getAssociatedMethod();
 
-            Map<String, String[]> parameterMap = req.getParameterMap();
-            Object result = match.execute(applicationContext, parameterMap);
+            Collection<Part> parts = null;
+            String contentType = req.getContentType();
+            System.out.println("ContentType reçu : " + contentType);
 
+            if (contentType != null && contentType.toLowerCase().startsWith("multipart/")) {
+                parts = req.getParts();
+                System.out.println("Nombre de parts trouvées : " + (parts != null ? parts.size() : 0));
+                for(Part p : parts) {
+                    System.out.println(" - Nom du part : " + p.getName() + ", Fichier : " + p.getSubmittedFileName());
+                }
+            }
+
+            Map<String, String[]> parameterMap = req.getParameterMap();
+            Object result = match.execute(applicationContext, parameterMap, parts);
 
             if (classScanner.isWebAPIAnnotated(associatedMethod)) {
                 resp.setContentType("application/json");
@@ -93,7 +110,7 @@ public class FrontServletController extends HttpServlet {
                 if (result instanceof String) {
                     String toPrint = "";
                     WebAPI webAPI = associatedMethod.getAnnotation(WebAPI.class);
-                    if(!webAPI.isJson()) {
+                    if (!webAPI.isJson()) {
                         toPrint = "{ \"data\": \"" + (String) result + "\" }";
                     } else {
                         toPrint = (String) result;
@@ -119,7 +136,7 @@ public class FrontServletController extends HttpServlet {
                     String toPrint = urlMethod.toString() + " -> " + match.getControllerClass().getName() + " ("
                             + match.getAssociatedMethod().getName() + ")";
                     out.println(toPrint);
-                    if(result != null) {
+                    if (result != null) {
                         out.println("This is the result: " + result.toString());
                     }
                 }
