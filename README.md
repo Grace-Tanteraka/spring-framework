@@ -76,3 +76,11 @@ Objectif : Upload file
 # Sprint 9
 Objectif : utiliser la session
 - Faire une classe personnelle ayant comme attribut un map
+- Ajouter un map dans context, cle : sessionId, val : Session
+- Si sessionid existe deja, on utilise son instance sinon on ajoute
+
+# Sprint 10
+Objectif : un utilisateur devrait etre connecte avant d'executer une methode de controlleur
+
+# Sprint 10 bis
+Objecitf : une methode ne peux etre excecute que par un role precis
