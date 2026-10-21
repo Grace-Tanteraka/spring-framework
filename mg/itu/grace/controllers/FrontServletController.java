@@ -11,6 +11,7 @@ import jakarta.servlet.annotation.MultipartConfig;
 
 import mg.itu.grace.utils.ClassScanner;
 import mg.itu.grace.utils.ConfigLoader;
+import mg.itu.grace.utils.Utils;
 import mg.itu.grace.web.ModelAndView;
 import mg.itu.grace.annotations.Controller;
 import mg.itu.grace.annotations.WebAPI;
@@ -40,7 +41,7 @@ public class FrontServletController extends HttpServlet {
         viewsExtension = (String) context.getAttribute("viewsExtension");
 
         applicationContext = context.getAttribute("SPRING_CONTEXT");
-        mySession = (Session) context.getAttribute("session");
+        //mySession = (Session) context.getAttribute("session");
 
         ConfigLoader.init(context);
     }
@@ -103,6 +104,10 @@ public class FrontServletController extends HttpServlet {
             }
 
             HttpSession realSession = req.getSession();
+
+            String sessionId = realSession.getId();
+
+            mySession = Utils.getUserSession((Map<String, Session>) this.getServletContext().getAttribute("sessionStorage"), sessionId);
 
             if (realSession != null) {
                 Enumeration<String> attributeNames = realSession.getAttributeNames();

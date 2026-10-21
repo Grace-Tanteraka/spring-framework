@@ -21,6 +21,10 @@ public class Session {
     public void reset(){
         this.attributes.clear();
     }
+
+    public void removeSession(String key){
+        this.attributes.remove(key);
+    }
 }
 
 // Donc on a un petit probleme c'est que il ne faut plus me derrander quand je suis concentre car tout a l'heure j'ai attendu trop longtemps et maintenant je ne veux plus etre deranger

@@ -19,9 +19,9 @@ import mg.itu.grace.web.Session;
 //@WebListener
 public class ContextListner implements ServletContextListener {
     private ClassScanner classScanner = new ClassScanner();
-    private Session session = new Session();
     private String viewsBasePath = "/WEB-INF/views/";
     private String viewsExtension = ".jsp";
+    private Map<String, Session> sessionStorage = new HashMap<>();
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
@@ -64,7 +64,7 @@ public class ContextListner implements ServletContextListener {
             context.setAttribute("urlMethodMap", urlMethodMap);
             context.setAttribute("viewsBasePath", viewsBasePath);
             context.setAttribute("viewsExtension", viewsExtension);
-            context.setAttribute("session", this.session);
+            context.setAttribute("sessionStorage", this.sessionStorage);
         } catch (Exception e) {
             e.printStackTrace();
         }
