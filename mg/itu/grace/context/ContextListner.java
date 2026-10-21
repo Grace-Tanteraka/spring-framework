@@ -14,10 +14,12 @@ import jakarta.servlet.annotation.WebListener;
 import mg.itu.grace.dto.ControllerMethod;
 import mg.itu.grace.dto.UrlMethod;
 import mg.itu.grace.utils.ClassScanner;
+import mg.itu.grace.web.Session;
 
 //@WebListener
 public class ContextListner implements ServletContextListener {
     private ClassScanner classScanner = new ClassScanner();
+    private Session session = new Session();
     private String viewsBasePath = "/WEB-INF/views/";
     private String viewsExtension = ".jsp";
 
@@ -62,6 +64,7 @@ public class ContextListner implements ServletContextListener {
             context.setAttribute("urlMethodMap", urlMethodMap);
             context.setAttribute("viewsBasePath", viewsBasePath);
             context.setAttribute("viewsExtension", viewsExtension);
+            context.setAttribute("session", this.session);
         } catch (Exception e) {
             e.printStackTrace();
         }

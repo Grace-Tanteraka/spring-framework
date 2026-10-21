@@ -14,6 +14,7 @@ import mg.itu.grace.annotations.Param;
 import mg.itu.grace.utils.Utils;
 
 import jakarta.servlet.http.Part;
+import mg.itu.grace.web.Session;
 
 public class ControllerMethod {
     private Class<?> controllerClass;
@@ -43,7 +44,7 @@ public class ControllerMethod {
         this.associatedMethod = associatedMethod;
     }
 
-    public Object execute(Object context, Map<String, String[]> parameterMap, Collection<Part> parts) throws Exception{
+    public Object execute(Object context, Map<String, String[]> parameterMap, Collection<Part> parts, Session session) throws Exception{
         try {
             Object controllerInstance = controllerClass.getDeclaredConstructor().newInstance();
             Class<?>[] parameterTypes = associatedMethod.getParameterTypes();
@@ -54,6 +55,8 @@ public class ControllerMethod {
                 if (parameterTypes[i].getName().equals("org.springframework.context.ApplicationContext")
                         && context != null) {
                     parameters[i] = context;
+                } else if (parameterTypes[i].equals(Session.class) || parameterTypes[i].getName().equals("mg.itu.grace.web.Session")){
+                    parameters[i] = session;
                 } else  {
                     Param annotation = parameter.getAnnotation(mg.itu.grace.annotations.Param.class);
                     String paramName = (annotation != null) ? annotation.value() : parameter.getName();

@@ -72,3 +72,7 @@ Objectif : Upload file
 - Methode 2
     - Creer une class dto (misolo map)
     - ajouter a l'attribut de la fonction d'action (dans le controller)
+
+# Sprint 9
+Objectif : utiliser la session
+- Faire une classe personnelle ayant comme attribut un map
