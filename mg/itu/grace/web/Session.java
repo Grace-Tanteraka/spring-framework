@@ -5,6 +5,7 @@ import java.util.Map;
 
 public class Session {
     private Map<String, Object> attributes = new HashMap<>();
+    private boolean invalidate = false;
 
     public void setAttribute(String key, Object value) {
         this.attributes.put(key, value);
@@ -22,8 +23,12 @@ public class Session {
         this.attributes.clear();
     }
 
-    public void removeSession(String key){
-        this.attributes.remove(key);
+    public void invalidate(){
+        this.invalidate = true;
+    }
+
+    public boolean isToInvalidate(){
+        return this.invalidate;
     }
 }
 
