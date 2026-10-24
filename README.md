@@ -81,6 +81,9 @@ Objectif : utiliser la session
 
 # Sprint 10
 Objectif : un utilisateur devrait etre connecte avant d'executer une methode de controlleur
+- Faire une annotation Auth 
+- Ajouter une param-init dans le web.xml et ajouter variable-authentification-check
+- Si la session de l'utilisateur contient cette cle alors la methode s'excecute sinon throw AuthentificationException
 
 # Sprint 10 bis
 Objecitf : une methode ne peux etre excecute que par un role precis
