@@ -11,16 +11,15 @@ import jakarta.servlet.annotation.MultipartConfig;
 
 import mg.itu.grace.utils.ClassScanner;
 import mg.itu.grace.utils.ConfigLoader;
+import mg.itu.grace.utils.Utils;
 import mg.itu.grace.web.ModelAndView;
 import mg.itu.grace.annotations.Controller;
 import mg.itu.grace.annotations.WebAPI;
 import mg.itu.grace.dto.ControllerMethod;
 import mg.itu.grace.dto.UrlMethod;
+import mg.itu.grace.web.Session;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Collection;
-import java.util.HashMap;
+import java.util.*;
 
 @MultipartConfig
 public class FrontServletController extends HttpServlet {
@@ -30,6 +29,7 @@ public class FrontServletController extends HttpServlet {
     private String viewsBasePath = "";
     private String viewsExtension = "";
     private Object applicationContext;
+    private Session mySession;
 
     public void init() throws ServletException {
         ServletContext context = this.getServletContext();
@@ -41,6 +41,7 @@ public class FrontServletController extends HttpServlet {
         viewsExtension = (String) context.getAttribute("viewsExtension");
 
         applicationContext = context.getAttribute("SPRING_CONTEXT");
+        //mySession = (Session) context.getAttribute("session");
 
         ConfigLoader.init(context);
     }
@@ -84,6 +85,7 @@ public class FrontServletController extends HttpServlet {
         url = classScanner.formatUrl(req);
         ControllerMethod match = null;
         try {
+
             UrlMethod urlMethod = new UrlMethod(url, req.getMethod());
             match = classScanner.validateUrlMethod(urlMethod, urlMethodMap);
 
@@ -101,8 +103,34 @@ public class FrontServletController extends HttpServlet {
                 }
             }
 
+            HttpSession realSession = req.getSession();
+
+            String sessionId = realSession.getId();
+
+            mySession = Utils.getUserSession((Map<String, Session>) this.getServletContext().getAttribute("sessionStorage"), sessionId);
+
+            if (realSession != null) {
+                Enumeration<String> attributeNames = realSession.getAttributeNames();
+                while (attributeNames.hasMoreElements()) {
+                    String key = attributeNames.nextElement();
+                    Object value = realSession.getAttribute(key);
+
+                    mySession.setAttribute(key, value);
+
+                    System.out.println("Clé : " + key + " | Valeur : " + value);
+                }
+            }
+
             Map<String, String[]> parameterMap = req.getParameterMap();
-            Object result = match.execute(applicationContext, parameterMap, parts);
+            Object result = match.execute(applicationContext, parameterMap, parts, mySession);
+
+            Map<String, Object> sessionContent = mySession.getAllAttributes();
+
+            for (Map.Entry<String, Object> entry : sessionContent.entrySet()) {
+                realSession.setAttribute(entry.getKey(), entry.getValue());
+            }
+
+            mySession.reset();
 
             if (classScanner.isWebAPIAnnotated(associatedMethod)) {
                 resp.setContentType("application/json");

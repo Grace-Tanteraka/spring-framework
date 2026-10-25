@@ -3,6 +3,7 @@ package mg.itu.grace.utils;
 import jakarta.servlet.http.Part;
 import mg.itu.grace.dto.MapFile;
 import mg.itu.grace.service.FileStorageService;
+import mg.itu.grace.web.Session;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -224,5 +225,12 @@ public class Utils {
             }
             return null;
         }
+    }
+
+    public static Session getUserSession (Map<String, Session> mapSession, String sessionId){
+        if(mapSession.containsKey(sessionId)){
+            return mapSession.get(sessionId);
+        }
+        return new Session();
     }
 }
