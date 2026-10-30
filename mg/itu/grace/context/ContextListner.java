@@ -23,6 +23,7 @@ public class ContextListner implements ServletContextListener {
     private String viewsExtension = ".jsp";
     private Map<String, Session> sessionStorage = new HashMap<>();
     private String authCheck = "USERID";
+    private String roleCheck = "ROLECHECK";
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
@@ -52,6 +53,8 @@ public class ContextListner implements ServletContextListener {
                 : viewsExtension;
         authCheck = context.getInitParameter("authCheck") != null ? context.getInitParameter("authCheck")
                 : authCheck;
+        roleCheck = context.getInitParameter("roleCheck") != null ? context.getInitParameter("roleCheck")
+                : roleCheck;
 
         try {
             if (longPackageName == null || longPackageName.isEmpty()) {
@@ -70,6 +73,7 @@ public class ContextListner implements ServletContextListener {
             context.setAttribute("viewsExtension", viewsExtension);
             context.setAttribute("sessionStorage", this.sessionStorage);
             context.setAttribute("authCheck", authCheck);
+            context.setAttribute("roleCheck", roleCheck);
         } catch (Exception e) {
             e.printStackTrace();
         }

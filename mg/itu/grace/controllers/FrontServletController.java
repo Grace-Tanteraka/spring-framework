@@ -32,6 +32,7 @@ public class FrontServletController extends HttpServlet {
     private Object applicationContext;
     private Session mySession;
     private String authCheck;
+    private String roleCheck;
 
     public void init() throws ServletException {
         ServletContext context = this.getServletContext();
@@ -45,6 +46,7 @@ public class FrontServletController extends HttpServlet {
         applicationContext = context.getAttribute("SPRING_CONTEXT");
         authCheck = (String) context.getAttribute("authCheck");
         //mySession = (Session) context.getAttribute("session");
+        roleCheck = (String) context.getAttribute("roleCheck");
 
         ConfigLoader.init(context);
     }
@@ -110,6 +112,7 @@ public class FrontServletController extends HttpServlet {
 
             String sessionId = realSession.getId();
 
+            System.out.println("------------------------------ :"+roleCheck);
             mySession = Utils.getUserSession((Map<String, Session>) this.getServletContext().getAttribute("sessionStorage"), sessionId);
 
             if (realSession != null) {
@@ -124,7 +127,7 @@ public class FrontServletController extends HttpServlet {
                 }
             }
 
-            Utils.checkAuth(associatedMethod, authCheck, mySession);
+            Utils.checkAuth(associatedMethod, authCheck, roleCheck, mySession);
 
             Map<String, String[]> parameterMap = req.getParameterMap();
             Object result = match.execute(applicationContext, parameterMap, parts, mySession);
