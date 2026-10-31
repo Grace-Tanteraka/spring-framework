@@ -14,6 +14,7 @@ import jakarta.servlet.annotation.WebListener;
 import mg.itu.grace.dto.ControllerMethod;
 import mg.itu.grace.dto.UrlMethod;
 import mg.itu.grace.utils.ClassScanner;
+import mg.itu.grace.utils.Messages;
 import mg.itu.grace.web.Session;
 
 //@WebListener
@@ -45,7 +46,9 @@ public class ContextListner implements ServletContextListener {
         context.setAttribute("SPRING_CONTEXT", springContext);
 
         List<Class<?>> controllerClasses = new ArrayList<>();
-        Map<UrlMethod, ControllerMethod> urlMethodMap = new HashMap<>();
+        Map<UrlMethod, Class<?>> urlMethodMap = new HashMap<>();
+        Map<UrlMethod, ControllerMethod> urlControllerMap = new HashMap<>();
+
         String longPackageName = context.getInitParameter("controller-base-package");
         viewsBasePath = context.getInitParameter("viewsBasePath") != null ? context.getInitParameter("viewsBasePath")
                 : viewsBasePath;
@@ -69,11 +72,13 @@ public class ContextListner implements ServletContextListener {
             context.setAttribute("classScanner", classScanner);
             context.setAttribute("controllerClasses", controllerClasses);
             context.setAttribute("urlMethodMap", urlMethodMap);
+            context.setAttribute("urlControllerMap", urlControllerMap);
             context.setAttribute("viewsBasePath", viewsBasePath);
             context.setAttribute("viewsExtension", viewsExtension);
             context.setAttribute("sessionStorage", this.sessionStorage);
             context.setAttribute("authCheck", authCheck);
             context.setAttribute("roleCheck", roleCheck);
+            context.setAttribute("errorMessages", new Messages());
         } catch (Exception e) {
             e.printStackTrace();
         }

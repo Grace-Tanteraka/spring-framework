@@ -232,19 +232,18 @@ public class Utils {
         return new Session();
     }
 
-    public static void checkAuth(Method method, String authCheck, String roleCheck, Session session) throws Exception{
+    public static void checkAuth(Method method, String authCheck, String roleCheck, Session session) throws AuthentificationFailedException, InvalidRoleException{
         if(method.isAnnotationPresent(mg.itu.grace.annotations.Auth.class)){
             Auth authentification = method.getAnnotation(mg.itu.grace.annotations.Auth.class);
-            String roles = authentification.roles();
             if(!session.getAllAttributes().containsKey(authCheck) || session.getAttribute(authCheck) == null){
                 throw new AuthentificationFailedException();
             }
-            String[] permittedRoles = roles.split(",");
-            if(permittedRoles.length > 0) {
+            String[] roles = authentification.roles();
+            if(roles != null && roles.length > 0) {
                 boolean isPermitted = false;
                 String userRole = ((String) session.getAttribute(roleCheck)).toUpperCase();
-                for (String r : permittedRoles) {
-                    if ((r.toUpperCase()).equals(userRole)){
+                for (String r : roles) {
+                    if ((r.toUpperCase()).equals(userRole) || r.equals("*")){
                         isPermitted = true;
                         break;
                     }

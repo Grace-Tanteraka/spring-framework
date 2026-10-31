@@ -10,8 +10,11 @@ import jakarta.servlet.http.*;
 import jakarta.servlet.annotation.MultipartConfig;
 
 import mg.itu.grace.exception.AuthentificationFailedException;
+import mg.itu.grace.exception.InvalidRoleException;
+import mg.itu.grace.exception.UnsupportedUrlException;
 import mg.itu.grace.utils.ClassScanner;
 import mg.itu.grace.utils.ConfigLoader;
+import mg.itu.grace.utils.Messages;
 import mg.itu.grace.utils.Utils;
 import mg.itu.grace.web.ModelAndView;
 import mg.itu.grace.annotations.Controller;
@@ -26,19 +29,23 @@ import java.util.*;
 public class FrontServletController extends HttpServlet {
     private ClassScanner classScanner;
     private List<Class<?>> controllerClasses;
-    private Map<UrlMethod, ControllerMethod> urlMethodMap = new HashMap<>();
+    private Map<UrlMethod, Class<?>> urlMethodMap;
+    private Map<UrlMethod, ControllerMethod> urlControllerMap;
     private String viewsBasePath = "";
     private String viewsExtension = "";
     private Object applicationContext;
     private Session mySession;
     private String authCheck;
     private String roleCheck;
+    private Messages errorMessages;
 
     public void init() throws ServletException {
         ServletContext context = this.getServletContext();
         classScanner = (ClassScanner) context.getAttribute("classScanner");
         controllerClasses = (List<Class<?>>) context.getAttribute("controllerClasses");
-        urlMethodMap = (Map<UrlMethod, ControllerMethod>) context.getAttribute("urlMethodMap");
+        urlMethodMap = (Map<UrlMethod, Class<?>>) context.getAttribute("urlMethodMap");
+        urlControllerMap = (Map<UrlMethod, ControllerMethod>) context.getAttribute("urlControllerMap");
+        errorMessages = (Messages) context.getAttribute("errorMessages");
 
         viewsBasePath = (String) context.getAttribute("viewsBasePath");
         viewsExtension = (String) context.getAttribute("viewsExtension");
@@ -92,7 +99,7 @@ public class FrontServletController extends HttpServlet {
         try {
 
             UrlMethod urlMethod = new UrlMethod(url, req.getMethod());
-            match = classScanner.validateUrlMethod(urlMethod, urlMethodMap);
+            match = classScanner.validateUrlMethod(urlMethod, urlMethodMap, urlControllerMap);
 
             Method associatedMethod = match.getAssociatedMethod();
 
@@ -112,7 +119,7 @@ public class FrontServletController extends HttpServlet {
 
             String sessionId = realSession.getId();
 
-            System.out.println("------------------------------ :"+roleCheck);
+            //System.out.println("------------------------------ :"+roleCheck);
             mySession = Utils.getUserSession((Map<String, Session>) this.getServletContext().getAttribute("sessionStorage"), sessionId);
 
             if (realSession != null) {
@@ -123,7 +130,7 @@ public class FrontServletController extends HttpServlet {
 
                     mySession.setAttribute(key, value);
 
-                    System.out.println("Clé : " + key + " | Valeur : " + value);
+                    //System.out.println("Clé : " + key + " | Valeur : " + value);
                 }
             }
 
@@ -136,10 +143,10 @@ public class FrontServletController extends HttpServlet {
 
             if(mySession.isToInvalidate() && realSession != null) {
                 realSession.invalidate();
-            }
-
-            for (Map.Entry<String, Object> entry : sessionContent.entrySet()) {
-                realSession.setAttribute(entry.getKey(), entry.getValue());
+            } else {
+                for (Map.Entry<String, Object> entry : sessionContent.entrySet()) {
+                    realSession.setAttribute(entry.getKey(), entry.getValue());
+                }
             }
 
             mySession.reset();
@@ -177,24 +184,41 @@ public class FrontServletController extends HttpServlet {
                             + match.getAssociatedMethod().getName() + ")";
                     out.println(toPrint);
                     if (result != null) {
-                        out.println("This is the result: " + result.toString());
+                        String resultStr = result.toString();
+                        //out.println("This is the result: " + resultStr);
+
+                        String checkRedirect = "redirect:";
+                        if(resultStr.startsWith(checkRedirect)){
+                            String path = resultStr.substring(checkRedirect.length());
+                            String contextPath = req.getContextPath();
+                            //out.println(contextPath + path);
+                            resp.sendRedirect(contextPath + path);
+                            return;
+                        }
                     }
                 }
             }
         } catch (AuthentificationFailedException e) {
-            out.println(authCheck + " : " + mySession.getAttribute(authCheck));
-            out.println(e.getMessage());
-        } catch (Exception e) {
-            out.println(e.getMessage() + "\n");
-            out.println("Supported URLs:");
+            //out.println(authCheck + " : " + mySession.getAttribute(authCheck));
+            //out.println(e.getMessage());
+            resp.sendError(HttpServletResponse.SC_FORBIDDEN, e.getMessage());
+        } catch (UnsupportedUrlException e) {
+            resp.sendError(HttpServletResponse.SC_NOT_FOUND, e.getMessage());
+            //out.println(e.getMessage() + "\n");
+            //out.println("Supported URLs:");
 
             // Print all supported URLs
-            for (UrlMethod supportedUrl : urlMethodMap.keySet()) {
+            /*for (UrlMethod supportedUrl : urlMethodMap.keySet()) {
                 ControllerMethod method = urlMethodMap.get(supportedUrl);
                 String toPrint = supportedUrl.toString() + " -> " + method.getControllerClass().getName() + " ("
                         + method.getAssociatedMethod().getName() + ")";
                 out.println(toPrint);
-            }
+            }*/
+        } catch (InvalidRoleException e) {
+            resp.sendError(HttpServletResponse.SC_FORBIDDEN, e.getMessage());
+        } catch (Exception e){
+            e.printStackTrace();
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
 }
