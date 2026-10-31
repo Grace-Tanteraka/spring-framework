@@ -9,6 +9,7 @@ import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import jakarta.servlet.annotation.MultipartConfig;
 
+import mg.itu.grace.exception.AuthentificationFailedException;
 import mg.itu.grace.utils.ClassScanner;
 import mg.itu.grace.utils.ConfigLoader;
 import mg.itu.grace.utils.Utils;
@@ -30,6 +31,7 @@ public class FrontServletController extends HttpServlet {
     private String viewsExtension = "";
     private Object applicationContext;
     private Session mySession;
+    private String authCheck;
 
     public void init() throws ServletException {
         ServletContext context = this.getServletContext();
@@ -41,6 +43,7 @@ public class FrontServletController extends HttpServlet {
         viewsExtension = (String) context.getAttribute("viewsExtension");
 
         applicationContext = context.getAttribute("SPRING_CONTEXT");
+        authCheck = (String) context.getAttribute("authCheck");
         //mySession = (Session) context.getAttribute("session");
 
         ConfigLoader.init(context);
@@ -121,10 +124,16 @@ public class FrontServletController extends HttpServlet {
                 }
             }
 
+            Utils.checkAuth(associatedMethod, authCheck, mySession);
+
             Map<String, String[]> parameterMap = req.getParameterMap();
             Object result = match.execute(applicationContext, parameterMap, parts, mySession);
 
             Map<String, Object> sessionContent = mySession.getAllAttributes();
+
+            if(mySession.isToInvalidate() && realSession != null) {
+                realSession.invalidate();
+            }
 
             for (Map.Entry<String, Object> entry : sessionContent.entrySet()) {
                 realSession.setAttribute(entry.getKey(), entry.getValue());
@@ -169,6 +178,9 @@ public class FrontServletController extends HttpServlet {
                     }
                 }
             }
+        } catch (AuthentificationFailedException e) {
+            out.println(authCheck + " : " + mySession.getAttribute(authCheck));
+            out.println(e.getMessage());
         } catch (Exception e) {
             out.println(e.getMessage() + "\n");
             out.println("Supported URLs:");

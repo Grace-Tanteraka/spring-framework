@@ -60,11 +60,11 @@ Objectif : Binding
 - mettre des nulls par tout
 - chercher parmis les requestparameters ce qui match et on remplace les valeurs null;
 
-# Sprint 7 bis
+## Sprint 7 bis
 Objectif : 
 - On teste a donner un objet depuis le view (ex : Employe)
 
-# Sprint 8
+## Sprint 8
 Objectif : Upload file
 - Methode 1
     - Creer class MapFile (nom, extention, bites[])
@@ -73,14 +73,17 @@ Objectif : Upload file
     - Creer une class dto (misolo map)
     - ajouter a l'attribut de la fonction d'action (dans le controller)
 
-# Sprint 9
+## Sprint 9
 Objectif : utiliser la session
 - Faire une classe personnelle ayant comme attribut un map
 - Ajouter un map dans context, cle : sessionId, val : Session
 - Si sessionid existe deja, on utilise son instance sinon on ajoute
 
-# Sprint 10
+## Sprint 10
 Objectif : un utilisateur devrait etre connecte avant d'executer une methode de controlleur
+- Faire une annotation Auth 
+- Ajouter une param-init dans le web.xml et ajouter variable-authentification-check
+- Si la session de l'utilisateur contient cette cle alors la methode s'excecute sinon throw AuthentificationException
 
-# Sprint 10 bis
+## Sprint 10 bis
 Objecitf : une methode ne peux etre excecute que par un role precis

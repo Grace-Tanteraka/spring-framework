@@ -2,6 +2,7 @@ package mg.itu.grace.utils;
 
 import jakarta.servlet.http.Part;
 import mg.itu.grace.dto.MapFile;
+import mg.itu.grace.exception.AuthentificationFailedException;
 import mg.itu.grace.service.FileStorageService;
 import mg.itu.grace.web.Session;
 
@@ -232,5 +233,13 @@ public class Utils {
             return mapSession.get(sessionId);
         }
         return new Session();
+    }
+
+    public static void checkAuth(Method method, String authCheck, Session session) throws Exception{
+        if(method.isAnnotationPresent(mg.itu.grace.annotations.Auth.class)){
+            if(!session.getAllAttributes().containsKey(authCheck) || session.getAttribute(authCheck) == null){
+                throw new AuthentificationFailedException();
+            }
+        }
     }
 }

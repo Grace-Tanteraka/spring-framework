@@ -22,6 +22,7 @@ public class ContextListner implements ServletContextListener {
     private String viewsBasePath = "/WEB-INF/views/";
     private String viewsExtension = ".jsp";
     private Map<String, Session> sessionStorage = new HashMap<>();
+    private String authCheck = "USERID";
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
@@ -49,6 +50,9 @@ public class ContextListner implements ServletContextListener {
                 : viewsBasePath;
         viewsExtension = context.getInitParameter("viewsExtension") != null ? context.getInitParameter("viewsExtension")
                 : viewsExtension;
+        authCheck = context.getInitParameter("authCheck") != null ? context.getInitParameter("authCheck")
+                : authCheck;
+
         try {
             if (longPackageName == null || longPackageName.isEmpty()) {
                 controllerClasses.addAll(classScanner.findControllerClasses("ALL", urlMethodMap));
@@ -65,6 +69,7 @@ public class ContextListner implements ServletContextListener {
             context.setAttribute("viewsBasePath", viewsBasePath);
             context.setAttribute("viewsExtension", viewsExtension);
             context.setAttribute("sessionStorage", this.sessionStorage);
+            context.setAttribute("authCheck", authCheck);
         } catch (Exception e) {
             e.printStackTrace();
         }
