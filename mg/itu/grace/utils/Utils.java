@@ -1,18 +1,15 @@
 package mg.itu.grace.utils;
 
 import jakarta.servlet.http.Part;
+import mg.itu.grace.annotations.Auth;
 import mg.itu.grace.dto.MapFile;
 import mg.itu.grace.exception.AuthentificationFailedException;
+import mg.itu.grace.exception.InvalidRoleException;
 import mg.itu.grace.service.FileStorageService;
 import mg.itu.grace.web.Session;
 
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.Vector;
-import java.util.Map;
+import java.util.*;
 
 import java.lang.reflect.*;
 
@@ -235,10 +232,27 @@ public class Utils {
         return new Session();
     }
 
-    public static void checkAuth(Method method, String authCheck, Session session) throws Exception{
+    public static void checkAuth(Method method, String authCheck, String roleCheck, Session session) throws Exception{
         if(method.isAnnotationPresent(mg.itu.grace.annotations.Auth.class)){
+            Auth authentification = method.getAnnotation(mg.itu.grace.annotations.Auth.class);
+            String roles = authentification.roles();
             if(!session.getAllAttributes().containsKey(authCheck) || session.getAttribute(authCheck) == null){
                 throw new AuthentificationFailedException();
+            }
+            String[] permittedRoles = roles.split(",");
+            if(permittedRoles.length > 0) {
+                boolean isPermitted = false;
+                String userRole = ((String) session.getAttribute(roleCheck)).toUpperCase();
+                for (String r : permittedRoles) {
+                    if ((r.toUpperCase()).equals(userRole)){
+                        isPermitted = true;
+                        break;
+                    }
+                }
+
+                if(!isPermitted) {
+                    throw new InvalidRoleException();
+                }
             }
         }
     }
