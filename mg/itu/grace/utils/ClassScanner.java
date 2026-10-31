@@ -15,6 +15,8 @@ import jakarta.servlet.http.*;
 import mg.itu.grace.dto.ControllerMethod;
 import mg.itu.grace.dto.UrlMethod;
 import mg.itu.grace.annotations.*;
+import mg.itu.grace.exception.DuplicatedUrlException;
+import mg.itu.grace.exception.UnsupportedUrlException;
 
 public class ClassScanner {
 
@@ -28,14 +30,32 @@ public class ClassScanner {
         return baseUrl.substring(contextPath.length());
     }
 
-    public ControllerMethod validateUrlMethod(UrlMethod urlMethod, Map<UrlMethod, ControllerMethod> supportedUrls)
+    //public ControllerMethod validateUrlMethod(UrlMethod urlMethod, Map<UrlMethod, ControllerMethod> supportedUrls)
+    public ControllerMethod validateUrlMethod(UrlMethod urlMethod, Map<UrlMethod, Class<?>> supportedUrls,
+                                              Map<UrlMethod, ControllerMethod> urlControllerMap)
             throws Exception {
         if (!supportedUrls.containsKey(urlMethod))
-            throw new Exception("No matching URL found for: " + urlMethod);
-        return supportedUrls.get(urlMethod);
+            throw new UnsupportedUrlException(urlMethod);
+        if(urlControllerMap.containsKey(urlMethod)){
+            return urlControllerMap.get(urlMethod);
+        } else {
+            Class<?> clazz = supportedUrls.get(urlMethod);
+            Method[] belongsMethods = clazz.getDeclaredMethods();urlMethod.getMethod();
+            for(Method method : belongsMethods){
+                if(method.isAnnotationPresent(UrlMapping.class)){
+                    UrlMapping url = method.getAnnotation(UrlMapping.class);
+                    if(urlMethod.getMethod().equals(url.method()) && urlMethod.getUrl().equals(url.url())){
+                        ControllerMethod controller = new ControllerMethod(clazz, method);
+                        return controller;
+                    }
+                }
+            }
+        }
+        throw new UnsupportedUrlException(urlMethod);
     }
 
-    public List<Class<?>> findControllerClasses(String packageName, Map<UrlMethod, ControllerMethod> methodUrlsmap)
+    //public List<Class<?>> findControllerClasses(String packageName, Map<UrlMethod, ControllerMethod> methodUrlsmap)
+    public List<Class<?>> findControllerClasses(String packageName, Map<UrlMethod, Class<?>> methodUrlsmap)
             throws Exception {
         List<Class<?>> list = new ArrayList<>();
 
@@ -59,7 +79,8 @@ public class ClassScanner {
     }
 
     public void scanDirectoryForController(File directory, String packageName, List<Class<?>> classes,
-            Map<UrlMethod, ControllerMethod> methodUrlsmap)
+            //Map<UrlMethod, ControllerMethod> methodUrlsmap)
+            Map<UrlMethod, Class<?>> methodUrlsmap)
             throws ClassNotFoundException, Exception {
         File[] files = directory.listFiles();
         if (files == null)
@@ -83,10 +104,12 @@ public class ClassScanner {
                             UrlMapping urlMapping = meth.getAnnotation(UrlMapping.class);
                             UrlMethod urlmMethod = new UrlMethod(urlMapping.url(), urlMapping.method());
                             if (methodUrlsmap.containsKey(urlmMethod)) {
-                                throw new RuntimeException("Duplicate URL mapping found for: " + urlmMethod
-                                        + " in class: " + clazz.getName() + " method: " + meth.getName());
+                                /*throw new RuntimeException("Duplicate URL mapping found for: " + urlmMethod
+                                        + " in class: " + clazz.getName() + " method: " + meth.getName());*/
+                                throw new DuplicatedUrlException(urlmMethod,clazz.getName(),meth.getName());
                             }
-                            methodUrlsmap.put(urlmMethod, new ControllerMethod(clazz, meth));
+                            //methodUrlsmap.put(urlmMethod, new ControllerMethod(clazz, meth));
+                            methodUrlsmap.put(urlmMethod, clazz);
                         }
                     }
                 }
